@@ -1345,6 +1345,11 @@ export default function Home() {
           <a href="#mo-quan">Mở quán</a>
           <Link href="/quan-tri">CMS công thức</Link>
         </div>
+        <div className="footer-developer" aria-label="Thông tin nhà phát triển">
+          <span>Nhà phát triển</span>
+          <strong>PhuDong AI</strong>
+          <a href="tel:0913774502">Hotline: 0913774502</a>
+        </div>
         <p className="copyright">© 2026 Ăn gì hôm nay. Nấu bằng niềm vui.</p>
       </footer>
 
