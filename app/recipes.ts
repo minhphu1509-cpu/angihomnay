@@ -512,7 +512,7 @@ const signatureProfiles: Record<string, SignatureProfile> = {
       ingredient(2, "quả", "ớt chuông đỏ", "Phần chính"),
       ingredient(2, "củ", "hành tây", "Phần chính"),
       ingredient(30, "g", "cà chua cô đặc", "Gia vị"),
-      ingredient(650, "ml", "nước dùng gà hoặc rau củ", "Phần chính"),
+      ingredient(650, "ml", "nước dùng gà", "Phần chính"),
       ingredient(35, "ml", "dầu ăn", "Gia vị"),
       ingredient(1, "thìa cà phê", "húng tây khô", "Gia vị"),
       ingredient(1, "thìa cà phê", "bột cà ri không cay", "Gia vị"),
@@ -604,6 +604,10 @@ const regionalPantry: Record<RegionKey, Ingredient[]> = {
 const lower = (value: string) => value.toLocaleLowerCase("vi");
 const includesAny = (value: string, words: string[]) =>
   words.some((word) => lower(value).includes(word));
+const pickByName = <T,>(name: string, options: T[]) => {
+  const score = Array.from(name).reduce((total, char) => total + char.charCodeAt(0), 0);
+  return options[score % options.length];
+};
 
 const inferFamily = (name: string): DishFamily => {
   if (includesAny(name, ["chè", "pudding", "pavlova", "lamington", "bánh táo", "bánh chanh", "pancake", "crepe", "cốm xào", "xôi xiêm", "tào phớ"])) return "Món ngọt";
@@ -620,36 +624,66 @@ const inferFamily = (name: string): DishFamily => {
   return includesAny(name, ["chiên", "tempura", "bánh xèo"]) ? "Chiên" : "Nướng";
 };
 
-const proteinFor = (name: string): Ingredient[] => {
+const proteinFor = (name: string, family: DishFamily): Ingredient[] => {
+  if (family === "Món ngọt") return [];
+  if (family === "Bánh bột" && includesAny(name, ["bánh chưng", "bánh giò", "bánh cuốn", "bánh bột lọc", "bánh bèo", "há cảo", "hoành thánh", "empanada"])) {
+    return [ingredient(280, "g", pickByName(name, ["thịt băm", "tôm", "đậu xanh"]), "Phần chính", "chuẩn bị riêng")];
+  }
+  if (family === "Bánh bột") return [];
   if (includesAny(name, ["bò", "beef", "gyudon", "bulgogi", "goulash", "stroganoff"])) return [ingredient(550, "g", "thịt bò", "Phần chính", "thái theo thớ phù hợp")];
   if (includesAny(name, ["gà", "chicken", "tandoori", "adobo", "yassa"])) return [ingredient(650, "g", "thịt gà", "Phần chính", "cắt miếng đều")];
   if (includesAny(name, ["heo", "lợn", "sườn", "ba chỉ"])) return [ingredient(600, "g", "thịt heo", "Phần chính", "cắt miếng")];
   if (includesAny(name, ["tôm", "hải sản", "cua", "ốc"])) return [ingredient(500, "g", "hải sản", "Phần chính", "làm sạch")];
-  if (includesAny(name, ["cá", "lươn"])) return [ingredient(600, "g", "cá hoặc lươn", "Phần chính", "làm sạch")];
+  if (includesAny(name, ["lươn"])) return [ingredient(550, "g", "lươn", "Phần chính", "làm sạch nhớt")];
+  if (includesAny(name, ["cá"])) return [ingredient(600, "g", "cá", "Phần chính", "làm sạch")];
   if (includesAny(name, ["đậu", "rau củ", "ratatouille", "aloo", "chana"])) return [ingredient(450, "g", "rau củ và đậu", "Phần chính", "cắt đều")];
-  return [ingredient(400, "g", "đậu hũ hoặc nấm", "Phần chính", "cắt miếng")];
+  if (family === "Gỏi salad") return [ingredient(220, "g", pickByName(name, ["tôm", "thịt luộc", "rau củ giòn"]), "Phần chính", "sơ chế riêng")];
+  if (family === "Món nước") return [ingredient(450, "g", pickByName(name, ["xương heo", "chả", "rau củ nấu nước"]), "Phần chính", "sơ chế sạch")];
+  return [ingredient(420, "g", pickByName(name, ["thịt", "cá", "đậu", "rau củ chính"]), "Phần chính", "cắt miếng vừa ăn")];
 };
 
 const stapleFor = (name: string, family: DishFamily): Ingredient[] => {
   if (includesAny(name, ["phở"])) return [ingredient(500, "g", "bánh phở", "Phần chính")];
   if (includesAny(name, ["bún"])) return [ingredient(500, "g", "bún tươi", "Phần chính")];
   if (includesAny(name, ["mì", "ramen", "laksa", "khao soi"])) return [ingredient(350, "g", "mì", "Phần chính")];
+  if (includesAny(name, ["bánh canh"])) return [ingredient(500, "g", "sợi bánh canh", "Phần chính")];
+  if (includesAny(name, ["bánh cuốn", "bánh bèo", "bánh bột lọc", "bánh nậm", "bánh căn", "bánh khọt", "bánh hỏi"])) return [ingredient(320, "g", "bột gạo", "Phần chính")];
+  if (includesAny(name, ["bánh naan", "pizza", "pancake", "crepe", "damper", "roti", "msemen"])) return [ingredient(320, "g", "bột mì", "Phần chính")];
+  if (includesAny(name, ["samosa", "empanada", "bánh mì"])) return [ingredient(300, "g", pickByName(name, ["vỏ bánh", "bột mì"]), "Phần chính")];
+  if (includesAny(name, ["xôi", "bánh chưng", "bánh khúc", "bánh dày"])) return [ingredient(400, "g", "gạo nếp", "Phần chính", "ngâm mềm")];
+  if (includesAny(name, ["chè bắp"])) return [ingredient(350, "g", "bắp nếp", "Phần chính", "bào mỏng")];
+  if (includesAny(name, ["chè đậu", "chè kho"])) return [ingredient(280, "g", "đậu", "Phần chính", "ngâm mềm")];
+  if (includesAny(name, ["chè chuối", "chuối nếp"])) return [ingredient(500, "g", "chuối sứ", "Phần chính")];
+  if (includesAny(name, ["tào phớ"])) return [ingredient(800, "ml", "sữa đậu nành", "Phần chính")];
   if (family === "Cơm") return [ingredient(360, "g", "gạo", "Phần chính", "vo sạch")];
-  if (family === "Bánh bột") return [ingredient(300, "g", "bột mì hoặc bột gạo phù hợp", "Phần chính")];
-  if (family === "Món ngọt") return [ingredient(250, "g", "nguyên liệu bột hoặc hạt chính", "Phần chính")];
+  if (family === "Bánh bột") return [ingredient(300, "g", pickByName(name, ["bột gạo", "bột mì"]), "Phần chính")];
+  if (family === "Món ngọt") return [ingredient(250, "g", pickByName(name, ["đậu", "nếp", "trái cây", "bột làm bánh"]), "Phần chính")];
   return [];
 };
 
-const familyBasics = (family: DishFamily): Ingredient[] => {
+const aromaticFor = (name: string, region: RegionKey): Ingredient[] => {
+  if (includesAny(name, ["phở", "bún bò", "bò kho", "vịt quay", "biryani", "tagine", "jollof"])) {
+    return [ingredient(35, "g", pickByName(name, ["gừng", "sả", "hoa hồi", "quế"]), "Gia vị", "sơ chế riêng")];
+  }
+  if (includesAny(name, ["xào", "kho", "rim", "chiên", "nướng", "ram", "chả", "nem", "gỏi", "nộm"])) {
+    return [ingredient(35, "g", region === "Miền Bắc" ? pickByName(name, ["hành tím", "hành hoa"]) : pickByName(name, ["hành tím", "tỏi"]), "Gia vị", "băm hoặc thái nhỏ")];
+  }
+  if (includesAny(name, ["súp", "canh", "cháo", "lẩu", "hủ tiếu", "miến"])) {
+    return [ingredient(30, "g", pickByName(name, ["gừng", "hành tím", "rau mùi", "rau răm"]), "Gia vị", "sơ chế riêng")];
+  }
+  return [ingredient(25, "g", pickByName(name, ["hành tím", "tỏi", "hành lá"]), "Gia vị", "băm nhỏ")];
+};
+
+const familyBasics = (name: string, family: DishFamily, region: RegionKey): Ingredient[] => {
   if (family === "Món nước") return [
-    ingredient(1.8, "lít", "nước dùng không muối", "Phần chính"),
-    ingredient(1, "củ", "hành tây", "Phần chính", "bổ múi"),
-    ingredient(150, "g", "rau theo món", "Ăn kèm", "rửa sạch"),
+    ingredient(1.8, "lít", includesAny(name, ["canh", "súp", "cháo"]) ? pickByName(name, ["nước lọc", "nước luộc gà", "nước luộc rau củ"]) : pickByName(name, ["nước dùng xương", "nước dùng rau củ", "nước dùng hải sản"]), "Phần chính"),
+    ...aromaticFor(name, region),
+    ingredient(150, "g", includesAny(name, ["phở"]) ? "hành hoa, rau mùi và chanh" : includesAny(name, ["bún bò", "mì quảng", "cao lầu"]) ? "rau sống, bắp chuối và rau thơm" : pickByName(name, ["rau thơm", "giá đỗ", "rau sống"]), "Ăn kèm", "rửa sạch"),
   ];
   if (family === "Cơm") return [
-    ingredient(1, "củ", "hành tây", "Phần chính", "băm"),
+    ...aromaticFor(name, region),
     ingredient(650, "ml", "nước dùng", "Phần chính"),
-    ingredient(150, "g", "rau củ", "Phần chính", "cắt hạt lựu"),
+    ingredient(150, "g", includesAny(name, ["hến"]) ? "rau răm và tóp mỡ" : pickByName(name, ["cà rốt", "đậu Hà Lan", "rau ăn kèm"]), "Phần chính", "sơ chế vừa ăn"),
   ];
   if (family === "Mì xào") return [
     ingredient(180, "g", "rau củ giòn", "Phần chính", "thái sợi"),
@@ -658,7 +692,7 @@ const familyBasics = (family: DishFamily): Ingredient[] => {
   ];
   if (family === "Cà ri" || family === "Kho hầm") return [
     ingredient(250, "g", "cà chua", "Phần chính", "băm"),
-    ingredient(1, "củ", "hành tây", "Phần chính", "băm"),
+    ...aromaticFor(name, region),
     ingredient(500, "ml", "nước dùng", "Phần chính"),
   ];
   if (family === "Gỏi salad") return [
@@ -668,13 +702,13 @@ const familyBasics = (family: DishFamily): Ingredient[] => {
   ];
   if (family === "Món ngọt") return [
     ingredient(80, "g", "đường", "Gia vị"),
-    ingredient(250, "ml", "sữa hoặc nước cốt dừa", "Phần chính"),
+    ingredient(250, "ml", pickByName(name, ["sữa tươi", "nước cốt dừa"]), "Phần chính"),
     ingredient(2, "quả", "trứng", "Phần chính"),
   ];
   return [
     ingredient(200, "g", "rau củ theo mùa", "Phần chính", "cắt đều"),
     ingredient(30, "ml", "dầu ăn", "Gia vị"),
-    ingredient(1, "củ", "hành tây", "Phần chính", "thái"),
+    ...aromaticFor(name, region),
   ];
 };
 
@@ -738,7 +772,7 @@ const dishAccentFor = (name: string, family: DishFamily): Ingredient => {
     [["bánh da lợn"], ingredient(160, "g", "đậu xanh cà vỏ", "Phần chính", "hấp chín")],
     [["chè bắp"], ingredient(350, "g", "bắp nếp bào", "Phần chính")],
     [["chè chuối"], ingredient(500, "g", "chuối sứ", "Phần chính", "cắt khoanh")],
-    [["chè đậu"], ingredient(280, "g", "đậu theo món", "Phần chính", "ngâm mềm")],
+    [["chè đậu"], ingredient(280, "g", "đậu trắng", "Phần chính", "ngâm mềm")],
     [["tào phớ"], ingredient(800, "ml", "sữa đậu nành", "Phần chính")],
     [["sushi"], ingredient(8, "lá", "rong biển nori", "Phần chính")],
     [["ramen"], ingredient(35, "g", "miso", "Gia vị")],
@@ -756,11 +790,15 @@ const dishAccentFor = (name: string, family: DishFamily): Ingredient => {
   ];
   const matched = rules.find(([keys]) => keys.some((key) => includesAny(name, [key])));
   if (matched) return matched[1];
-  if (family === "Món nước") return ingredient(40, "g", `gia vị nền riêng cho ${name}`, "Gia vị", "rang hoặc phi thơm trước khi nấu");
-  if (family === "Cơm") return ingredient(120, "g", `rau củ điểm vị cho ${name}`, "Phần chính", "cắt đều");
-  if (family === "Bánh bột") return ingredient(80, "g", `phần nhân hoặc topping đặc trưng ${name}`, "Phần chính", "chuẩn bị riêng");
-  if (family === "Món ngọt") return ingredient(60, "g", `nguyên liệu tạo hương ${name}`, "Gia vị", "thêm ở cuối");
-  return ingredient(35, "g", `gia vị hoàn thiện ${name}`, "Gia vị", "cho vào cuối để nhận diện món");
+  if (family === "Món nước") return ingredient(40, "g", pickByName(name, ["hành lá", "rau mùi", "rau răm"]), "Ăn kèm", "thái nhỏ");
+  if (family === "Cơm") return ingredient(120, "g", pickByName(name, ["cà rốt", "đậu Hà Lan", "rau thơm"]), "Phần chính", "cắt đều");
+  if (family === "Bánh bột") return ingredient(80, "g", pickByName(name, ["đậu xanh", "tôm khô", "hành phi"]), "Phần chính", "chuẩn bị riêng");
+  if (family === "Món ngọt") return ingredient(60, "g", pickByName(name, ["gừng", "vani", "lá dứa", "mè rang"]), "Gia vị", "thêm ở cuối");
+  if (family === "Gỏi salad") return ingredient(45, "g", pickByName(name, ["đậu phộng rang", "hành phi"]), "Ăn kèm", "giã dập");
+  if (family === "Xào") return ingredient(120, "g", pickByName(name, ["cần tây", "hành lá", "ớt chuông"]), "Phần chính", "cắt khúc");
+  if (family === "Nướng") return ingredient(25, "g", pickByName(name, ["mật ong", "dầu điều", "mè rang"]), "Gia vị");
+  if (family === "Chiên") return ingredient(60, "g", pickByName(name, ["bột chiên giòn", "bột năng"]), "Gia vị");
+  return ingredient(35, "g", pickByName(name, ["hành tím", "tỏi", "tiêu xanh"]), "Gia vị", "cho vào cuối để dậy mùi");
 };
 
 const dedupeIngredients = (items: Ingredient[]) => {
@@ -1006,8 +1044,8 @@ const createRecipe = (
   const family = signature?.family ?? inferFamily(baseName);
   const rawIngredients = signature?.ingredients ?? dedupeIngredients([
     ...stapleFor(baseName, family),
-    ...proteinFor(baseName),
-    ...familyBasics(family),
+    ...proteinFor(baseName, family),
+    ...familyBasics(baseName, family, seed.region),
     dishAccentFor(baseName, family),
     ...regionalPantry[seed.region],
     ingredient(8, "g", "muối", "Gia vị"),
@@ -1216,12 +1254,12 @@ const canteenMethodIngredients = (method: CanteenMethod): Ingredient[] => {
     ingredient(12, "g", "tỏi", "Gia vị", "băm"),
   ];
   const byMethod: Record<CanteenMethod, Ingredient[]> = {
-    Kho: [ingredient(250, "ml", "nước dừa hoặc nước dùng", "Phần chính"), ingredient(30, "ml", "nước mắm", "Gia vị"), ingredient(15, "g", "đường", "Gia vị"), ingredient(2, "g", "tiêu", "Gia vị")],
+    Kho: [ingredient(250, "ml", "nước dừa tươi", "Phần chính"), ingredient(30, "ml", "nước mắm", "Gia vị"), ingredient(15, "g", "đường", "Gia vị"), ingredient(2, "g", "tiêu", "Gia vị")],
     Rim: [ingredient(35, "ml", "nước mắm", "Gia vị"), ingredient(20, "g", "đường", "Gia vị"), ingredient(80, "ml", "nước", "Phần chính"), ingredient(2, "g", "tiêu", "Gia vị")],
     Xào: [ingredient(250, "g", "rau củ dùng để xào", "Phần chính", "cắt đều"), ingredient(20, "ml", "nước tương", "Gia vị"), ingredient(10, "ml", "nước mắm", "Gia vị")],
-    Chiên: [ingredient(60, "ml", "dầu chiên", "Gia vị"), ingredient(20, "ml", "nước mắm hoặc nước tương", "Gia vị"), ingredient(10, "g", "đường", "Gia vị")],
+    Chiên: [ingredient(60, "ml", "dầu chiên", "Gia vị"), ingredient(20, "ml", "nước mắm", "Gia vị"), ingredient(10, "g", "đường", "Gia vị")],
     Nướng: [ingredient(25, "ml", "nước mắm", "Gia vị"), ingredient(20, "g", "mật ong", "Gia vị"), ingredient(10, "ml", "nước tương", "Gia vị"), ingredient(2, "g", "tiêu", "Gia vị")],
-    Sốt: [ingredient(280, "g", "cà chua", "Phần chính", "băm nhỏ"), ingredient(20, "ml", "nước mắm hoặc nước tương", "Gia vị"), ingredient(10, "g", "đường", "Gia vị")],
+    Sốt: [ingredient(280, "g", "cà chua", "Phần chính", "băm nhỏ"), ingredient(20, "ml", "nước mắm", "Gia vị"), ingredient(10, "g", "đường", "Gia vị")],
     Hấp: [ingredient(20, "g", "gừng", "Gia vị", "thái sợi"), ingredient(30, "g", "hành lá", "Ăn kèm", "thái nhỏ"), ingredient(15, "ml", "nước tương", "Gia vị")],
     Luộc: [ingredient(25, "g", "gừng", "Gia vị", "đập dập"), ingredient(20, "ml", "nước mắm", "Gia vị"), ingredient(1, "quả", "chanh", "Ăn kèm")],
     "Cà ri": [ingredient(250, "ml", "nước cốt dừa", "Phần chính"), ingredient(250, "g", "khoai tây và cà rốt", "Phần chính", "cắt khối"), ingredient(18, "g", "bột cà ri", "Gia vị")],
@@ -1368,7 +1406,9 @@ const invalidRecipes = recipes.filter(
     !recipe.contentVersion ||
     !recipe.verificationStatus ||
     !recipe.verificationNotes ||
-    recipe.ingredients.some((item) => /nguyên liệu chính cho|vừa đủ/i.test(item.item)),
+    recipe.ingredients.some((item) =>
+      /nguyên liệu chính cho|vừa đủ| hoặc |nước dùng không muối|rau theo món|gia vị nền riêng|đậu hũ hoặc nấm|rau củ điểm vị|phần nhân hoặc topping|nguyên liệu tạo hương|gia vị hoàn thiện|đúng món|theo món|đã gọi tên|đúng vùng|nền đúng loại/i.test(item.item),
+    ),
 );
 
 if (
