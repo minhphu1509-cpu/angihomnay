@@ -51,6 +51,13 @@ export type VietnameseTrayHistory = {
   vegetable: string[];
 };
 
+export type VietnameseTrayShoppingItem = {
+  group: "Gạo" | "Canh" | "Món mặn" | "Rau" | "Món kèm";
+  item: string;
+  amount: string;
+  note: string;
+};
+
 export const createEmptyPlanner = (): PlannerSlot[] =>
   plannerDays.map((day) => ({ day, recipeId: null, servings: 4 }));
 
@@ -292,6 +299,61 @@ export const summarizeVietnameseTrayHistory = (
     savory: meals.map((meal) => meal.savory),
     vegetable: meals.map((meal) => meal.vegetable),
   };
+};
+
+const amountForGroup = (
+  group: VietnameseTrayShoppingItem["group"],
+  diners: number,
+) => {
+  if (group === "Gạo") return `${diners * 160} g`;
+  if (group === "Canh") return `2 phần canh cho ${diners} người`;
+  if (group === "Món mặn") return `2 món mặn cho ${diners} người`;
+  if (group === "Rau") return `2 phần rau cho ${diners} người`;
+  return `2 phần dùng kèm cho ${diners} người`;
+};
+
+export const buildVietnameseTrayShoppingList = (
+  day: VietnameseTrayDay,
+  diners: number,
+): VietnameseTrayShoppingItem[] => {
+  const meals = [day.lunch, day.dinner];
+  const itemMap = new Map<string, VietnameseTrayShoppingItem>();
+
+  const addItem = (
+    group: VietnameseTrayShoppingItem["group"],
+    item: string,
+    note: string,
+  ) => {
+    const key = `${group}|${item.toLocaleLowerCase("vi")}`;
+    if (itemMap.has(key)) return;
+    itemMap.set(key, {
+      group,
+      item,
+      amount: amountForGroup(group, diners),
+      note,
+    });
+  };
+
+  addItem("Gạo", "Gạo tẻ nấu cơm", "Tính cho cả bữa trưa và bữa chiều.");
+  meals.forEach((meal) => {
+    addItem("Canh", meal.soup, `${meal.session}: nguyên liệu chính cho món canh.`);
+    addItem("Món mặn", meal.savory, `${meal.session}: chuẩn bị đạm và gia vị kho/rim/xào.`);
+    addItem("Rau", meal.vegetable, `${meal.session}: mua rau tươi, làm sát giờ ăn.`);
+    if (meal.boiled) {
+      addItem("Món kèm", meal.boiled, `${meal.session}: món ăn kèm cân vị mâm cơm.`);
+    }
+  });
+
+  const groupOrder: VietnameseTrayShoppingItem["group"][] = [
+    "Gạo",
+    "Canh",
+    "Món mặn",
+    "Rau",
+    "Món kèm",
+  ];
+  return [...itemMap.values()].sort(
+    (a, b) => groupOrder.indexOf(a.group) - groupOrder.indexOf(b.group),
+  );
 };
 
 export const estimateMealBudget = (diners: number, budgetPerPerson: number) => ({
