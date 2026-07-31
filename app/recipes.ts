@@ -41,6 +41,9 @@ export type Recipe = {
   safety: string;
   variation: string;
   sourceNote: string;
+  editorialStatus: "Đã biên tập chi tiết" | "Đã chuẩn hóa theo suất" | "Đang rà soát";
+  contentVersion: string;
+  imageStatus: "Ảnh đúng món" | "Minh họa theo nhóm món";
 };
 
 export type RegionKey =
@@ -950,6 +953,9 @@ const createRecipe = (
     safety: safetyFor(baseName),
     variation,
     sourceNote: "Công thức được biên soạn nguyên bản theo kỹ thuật đặc trưng của món; nhiệt độ an toàn tham chiếu FoodSafety.gov và cảnh báo dị ứng theo nhóm FDA.",
+    editorialStatus: signature ? "Đã biên tập chi tiết" : "Đang rà soát",
+    contentVersion: "2026.07",
+    imageStatus: exactRecipeImages[baseName] ? "Ảnh đúng món" : "Minh họa theo nhóm món",
   };
 };
 
@@ -1185,6 +1191,9 @@ const createCanteenRecipe = (dish: CanteenDishSeed, index: number): Recipe => {
     safety: safetyFor(dish.name),
     variation: "Suất cơm quán",
     sourceNote: "Định lượng dành cho 4 suất mẫu. Khi kinh doanh, cần nấu thử, cân lại hao hụt thực tế và tuân thủ yêu cầu an toàn thực phẩm tại địa phương.",
+    editorialStatus: "Đã chuẩn hóa theo suất",
+    contentVersion: "2026.07",
+    imageStatus: "Minh họa theo nhóm món",
   };
 };
 
@@ -1233,6 +1242,8 @@ const invalidRecipes = recipes.filter(
   (recipe) =>
     recipe.ingredients.length < 8 ||
     recipe.steps.length < 6 ||
+    !recipe.editorialStatus ||
+    !recipe.contentVersion ||
     recipe.ingredients.some((item) => /nguyên liệu chính cho|vừa đủ/i.test(item.item)),
 );
 

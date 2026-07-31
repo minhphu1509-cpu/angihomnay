@@ -11,6 +11,14 @@ import {
   regions,
 } from "./recipes";
 import { officialBusinessLinks, startupSteps, weeklyMenus } from "./guides";
+import MealPlanner from "./meal-planner";
+import {
+  buildShoppingList,
+  createEmptyPlanner,
+  createSamplePlanner,
+  PlannerSlot,
+  plannerDays,
+} from "./planner";
 
 type RegionFilter = "Tất cả" | RegionKey;
 
@@ -116,6 +124,9 @@ function RecipeCard({
             <HeartIcon filled={favorite} />
           </button>
         </div>
+        <span className={`quality-badge ${recipe.editorialStatus === "Đang rà soát" ? "reviewing" : ""}`}>
+          {recipe.editorialStatus}
+        </span>
         <button className="recipe-title-button" onClick={onOpen}>
           <h3>{recipe.name}</h3>
         </button>
@@ -134,15 +145,18 @@ function RecipeModal({
   recipe,
   favorite,
   onFavorite,
+  onAddToPlanner,
   onClose,
 }: {
   recipe: Recipe;
   favorite: boolean;
   onFavorite: () => void;
+  onAddToPlanner: (dayIndex: number) => void;
   onClose: () => void;
 }) {
   const [checked, setChecked] = useState<number[]>([]);
   const [servings, setServings] = useState(recipe.servings);
+  const [plannerDayIndex, setPlannerDayIndex] = useState(0);
   const scale = servings / recipe.servings;
 
   const formatAmount = (amount: number | string) => {
@@ -197,10 +211,35 @@ function RecipeModal({
             <div>
               <span className="variation-label">{recipe.variation}</span>
               <p>{recipe.description}</p>
+              <div className="editorial-meta">
+                <span className={recipe.editorialStatus === "Đang rà soát" ? "reviewing" : ""}>
+                  {recipe.editorialStatus}
+                </span>
+                <small>Phiên bản {recipe.contentVersion}</small>
+                <small>{recipe.imageStatus}</small>
+              </div>
             </div>
-            <button className={`save-recipe ${favorite ? "active" : ""}`} onClick={onFavorite}>
-              <HeartIcon filled={favorite} /> {favorite ? "Đã lưu món" : "Lưu món này"}
-            </button>
+            <div className="modal-intro-actions">
+              <button className={`save-recipe ${favorite ? "active" : ""}`} onClick={onFavorite}>
+                <HeartIcon filled={favorite} /> {favorite ? "Đã lưu món" : "Lưu món này"}
+              </button>
+              <div className="modal-plan-action">
+                <label>
+                  <span>Thêm vào</span>
+                  <select
+                    value={plannerDayIndex}
+                    onChange={(event) => setPlannerDayIndex(Number(event.target.value))}
+                  >
+                    {plannerDays.map((day, index) => (
+                      <option value={index} key={day}>{day}</option>
+                    ))}
+                  </select>
+                </label>
+                <button onClick={() => onAddToPlanner(plannerDayIndex)}>
+                  + Thực đơn tuần
+                </button>
+              </div>
+            </div>
           </div>
           <div className="recipe-columns">
             <aside>
@@ -336,6 +375,28 @@ export default function Home() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeWeek, setActiveWeek] = useState(0);
+  const [notice, setNotice] = useState("");
+  const [planner, setPlanner] = useState<PlannerSlot[]>(() => {
+    if (typeof window === "undefined") return createEmptyPlanner();
+    try {
+      const stored = window.localStorage.getItem("an-gi-hom-nay-planner");
+      const parsed = stored ? JSON.parse(stored) : null;
+      return Array.isArray(parsed) && parsed.length === 7
+        ? parsed
+        : createEmptyPlanner();
+    } catch {
+      return createEmptyPlanner();
+    }
+  });
+  const [checkedShoppingItems, setCheckedShoppingItems] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const stored = window.localStorage.getItem("an-gi-hom-nay-shopping");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
   const [businessInputs, setBusinessInputs] = useState({
     portionsPerDay: 80,
     pricePerPortion: 35000,
@@ -382,6 +443,28 @@ export default function Home() {
     };
   }, [businessInputs]);
 
+  const shoppingItems = useMemo(
+    () => buildShoppingList(planner, recipes),
+    [planner],
+  );
+
+  useEffect(() => {
+    window.localStorage.setItem("an-gi-hom-nay-planner", JSON.stringify(planner));
+  }, [planner]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      "an-gi-hom-nay-shopping",
+      JSON.stringify(checkedShoppingItems),
+    );
+  }, [checkedShoppingItems]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = window.setTimeout(() => setNotice(""), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
+
   const money = (value: number) =>
     Math.round(value).toLocaleString("vi-VN") + " ₫";
 
@@ -403,6 +486,39 @@ export default function Home() {
       window.localStorage.setItem("an-gi-hom-nay-favorites", JSON.stringify(next));
       return next;
     });
+  };
+
+  const setPlannerRecipe = (index: number, recipeId: number | null) => {
+    setPlanner((current) =>
+      current.map((slot, slotIndex) =>
+        slotIndex === index ? { ...slot, recipeId } : slot,
+      ),
+    );
+    setNotice(recipeId === null ? "Đã bỏ món khỏi ngày đã chọn." : `Đã cập nhật ${plannerDays[index]}.`);
+  };
+
+  const addRecipeToPlanner = (recipeId: number, dayIndex: number) => {
+    setPlannerRecipe(dayIndex, recipeId);
+    setSelectedRecipe(null);
+    setNotice(`Đã thêm món vào ${plannerDays[dayIndex]}.`);
+  };
+
+  const changePlannerServings = (index: number, delta: number) => {
+    setPlanner((current) =>
+      current.map((slot, slotIndex) =>
+        slotIndex === index
+          ? { ...slot, servings: Math.min(20, Math.max(1, slot.servings + delta)) }
+          : slot,
+      ),
+    );
+  };
+
+  const toggleShoppingItem = (key: string) => {
+    setCheckedShoppingItems((current) =>
+      current.includes(key)
+        ? current.filter((item) => item !== key)
+        : [...current, key],
+    );
   };
 
   const filteredRecipes = useMemo(() => {
@@ -458,7 +574,7 @@ export default function Home() {
         <nav className={menuOpen ? "open" : ""} aria-label="Điều hướng chính">
           <a href="#mon-viet" onClick={() => setMenuOpen(false)}>Món Việt</a>
           <a href="#com-quan" onClick={() => setMenuOpen(false)}>Cơm quán</a>
-          <a href="#thuc-don-tuan" onClick={() => setMenuOpen(false)}>Thực đơn tuần</a>
+          <a href="#ke-hoach-tuan" onClick={() => setMenuOpen(false)}>Kế hoạch tuần</a>
           <a href="#mo-quan" onClick={() => setMenuOpen(false)}>Mở quán</a>
           <a href="#kho-mon" onClick={() => setMenuOpen(false)}>300 món chọn lọc</a>
         </nav>
@@ -608,6 +724,29 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <MealPlanner
+        planner={planner}
+        recipes={recipes}
+        shoppingItems={shoppingItems}
+        checkedShoppingItems={checkedShoppingItems}
+        onSetRecipe={setPlannerRecipe}
+        onChangeServings={changePlannerServings}
+        onLoadSample={() => {
+          setPlanner(createSamplePlanner(recipes));
+          setCheckedShoppingItems([]);
+          setNotice("Đã nạp thực đơn mẫu cho 7 ngày.");
+        }}
+        onClear={() => {
+          setPlanner(createEmptyPlanner());
+          setCheckedShoppingItems([]);
+          setNotice("Đã làm mới kế hoạch tuần.");
+        }}
+        onToggleShoppingItem={toggleShoppingItem}
+        onClearCheckedShoppingItems={() => setCheckedShoppingItems([])}
+        onOpenRecipe={setSelectedRecipe}
+        onNotice={setNotice}
+      />
 
       <section className="weekly-section" id="thuc-don-tuan">
         <div className="weekly-intro">
@@ -908,7 +1047,7 @@ export default function Home() {
         <div className="footer-links">
           <a href="#mon-viet">Món Việt</a>
           <a href="#com-quan">Cơm quán</a>
-          <a href="#thuc-don-tuan">Thực đơn tuần</a>
+          <a href="#ke-hoach-tuan">Kế hoạch tuần</a>
           <a href="#mo-quan">Mở quán</a>
         </div>
         <p className="copyright">© 2026 Ăn gì hôm nay. Nấu bằng niềm vui.</p>
@@ -919,8 +1058,14 @@ export default function Home() {
           recipe={selectedRecipe}
           favorite={favorites.includes(selectedRecipe.id)}
           onFavorite={() => toggleFavorite(selectedRecipe.id)}
+          onAddToPlanner={(dayIndex) => addRecipeToPlanner(selectedRecipe.id, dayIndex)}
           onClose={() => setSelectedRecipe(null)}
         />
+      )}
+      {notice && (
+        <div className="app-toast" role="status" aria-live="polite">
+          <span>✓</span>{notice}
+        </div>
       )}
     </main>
   );

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 
@@ -10,7 +10,9 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Ăn gì hôm nay — 300 công thức chọn lọc",
   description:
-    "Khám phá 300 công thức không trùng lặp, ưu tiên 210 món Việt Nam, 50 món cơm quán, thực đơn tuần và bộ công cụ khởi nghiệp.",
+    "Khám phá 300 công thức chọn lọc, lập thực đơn 7 ngày, tự động tạo danh sách đi chợ và sử dụng bộ công cụ khởi nghiệp quán cơm.",
+  applicationName: "Ăn gì hôm nay",
+  manifest: "/manifest.webmanifest",
   other: {
     "codex-preview": "development",
   },
@@ -18,6 +20,11 @@ export const metadata: Metadata = {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#173f35",
+  colorScheme: "light",
 };
 
 export default function RootLayout({

@@ -7,13 +7,19 @@ Webapp hướng dẫn nấu 300 món ăn chọn lọc, thiết kế theo tinh th
 - Kho dữ liệu đúng 300 công thức có tên duy nhất, gồm 210 món Việt Nam và 90 món thế giới
 - Bộ sưu tập riêng 50 món cơm bình dân và cơm văn phòng theo định lượng suất
 - 4 thực đơn gia đình theo tuần, mỗi tuần đủ 7 ngày
+- Trình lập kế hoạch tương tác cho 7 ngày, có thể chọn món và điều chỉnh 1–20 khẩu phần
+- Tự động cộng dồn nguyên liệu trùng thành danh sách đi chợ theo ba nhóm
+- Đánh dấu nguyên liệu đã có/đã mua, sao chép và in danh sách đi chợ
+- Kế hoạch tuần và trạng thái mua sắm được lưu cục bộ trên thiết bị
+- Thêm món trực tiếp vào một ngày trong tuần từ cửa sổ công thức
+- Trạng thái biên tập minh bạch: đã biên tập chi tiết, đã chuẩn hóa theo suất hoặc đang rà soát
 - Lộ trình khởi nghiệp quán cơm và máy tính doanh thu, giá vốn, lợi nhuận, điểm hòa vốn
 - Tìm kiếm tức thời theo tên món, vùng miền và thẻ nội dung
 - Lọc theo 10 khu vực ẩm thực
 - Gợi ý món ngẫu nhiên cho hôm nay
 - Lưu món yêu thích trên thiết bị
 - Hướng dẫn nguyên liệu và tối thiểu 6 bước nấu có thể đánh dấu hoàn thành
-- Định lượng tự động theo 1–12 khẩu phần
+- Định lượng công thức theo 1–12 khẩu phần và kế hoạch tuần theo 1–20 người
 - Thời gian sơ chế, nấu, nghỉ; nhiệt độ và dấu hiệu chín
 - Cảnh báo dị ứng, an toàn thực phẩm, bảo quản và thay thế nguyên liệu
 - Kiểm tra tự động: đúng 300 công thức, không trùng tên, không trùng nội dung và không gắn sai ảnh
@@ -47,4 +53,4 @@ Tệp `vercel.json` đã cấu hình Vercel dùng quy trình build Next.js tiêu
 
 ## Công nghệ
 
-Next.js 16, React 19, TypeScript và CSS thuần. Không cần cơ sở dữ liệu hay biến môi trường.
+Next.js 16, React 19, TypeScript và CSS thuần. Bản hiện tại không cần cơ sở dữ liệu hay biến môi trường; dữ liệu cá nhân của kế hoạch tuần được lưu bằng `localStorage`.
