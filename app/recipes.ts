@@ -28,7 +28,7 @@ export type Recipe = {
   restTime: number;
   difficulty: "Dễ" | "Vừa" | "Cầu kỳ";
   servings: number;
-  image: string;
+  image: string | null;
   tags: string[];
   ingredients: Ingredient[];
   steps: RecipeStep[];
@@ -227,6 +227,8 @@ type DishFamily =
   | "Kho hầm"
   | "Nướng"
   | "Chiên"
+  | "Xào"
+  | "Hấp luộc"
   | "Gỏi salad"
   | "Bánh bột"
   | "Món ngọt";
@@ -558,16 +560,18 @@ const includesAny = (value: string, words: string[]) =>
   words.some((word) => lower(value).includes(word));
 
 const inferFamily = (name: string): DishFamily => {
-  if (includesAny(name, ["chè", "pudding", "pavlova", "lamington", "bánh táo", "bánh chanh", "pancake", "crepe", "cốm xào", "xôi xiêm"])) return "Món ngọt";
-  if (includesAny(name, ["gỏi", "nộm", "salad", "som tam", "ceviche"])) return "Gỏi salad";
-  if (includesAny(name, ["pizza", "naan", "samosa", "pakora", "dosa", "bánh cuốn", "bánh bèo", "bánh bột", "bánh khoái", "bánh khọt", "bánh tôm", "bánh hành", "bánh ngô", "empanada", "damper"])) return "Bánh bột";
+  if (includesAny(name, ["chè", "pudding", "pavlova", "lamington", "bánh táo", "bánh chanh", "pancake", "crepe", "cốm xào", "xôi xiêm", "tào phớ"])) return "Món ngọt";
+  if (includesAny(name, ["gỏi", "nộm", "salad", "som tam", "ceviche", "cuốn"])) return "Gỏi salad";
+  if (includesAny(name, ["pizza", "naan", "samosa", "pakora", "dosa", "bánh", "empanada", "damper", "injera", "msemen"])) return "Bánh bột";
   if (includesAny(name, ["cà ri", "curry", "masala", "korma", "vindaloo", "rendang", "tagine", "doro wat", "misir wot"])) return "Cà ri";
-  if (includesAny(name, ["phở", "bún", "ramen", "laksa", "khao soi", "súp", "canh", "cháo", "hủ tiếu", "bánh canh", "miến", "harira", "sinigang"])) return "Món nước";
+  if (includesAny(name, ["phở", "bún", "ramen", "laksa", "khao soi", "súp", "canh", "cháo", "hủ tiếu", "bánh canh", "miến", "harira", "sinigang", "lẩu", "don"])) return "Món nước";
   if (includesAny(name, ["mì xào", "pad thai", "mee goreng", "mì tương đen"])) return "Mì xào";
-  if (includesAny(name, ["cơm", "biryani", "paella", "risotto", "jambalaya", "jollof", "pulao", "pilau", "nasi"])) return "Cơm";
-  if (includesAny(name, ["kho", "hầm", "goulash", "stroganoff", "chili", "adobo", "thịt đông"])) return "Kho hầm";
+  if (includesAny(name, ["cơm", "xôi", "biryani", "paella", "risotto", "jambalaya", "jollof", "pulao", "pilau", "nasi"])) return "Cơm";
+  if (includesAny(name, ["kho", "hầm", "goulash", "stroganoff", "chili", "adobo", "thịt đông", "phá lấu"])) return "Kho hầm";
+  if (includesAny(name, ["hấp", "luộc", "tần"])) return "Hấp luộc";
   if (includesAny(name, ["nướng", "tandoori", "teriyaki", "satay", "bulgogi", "vịt quay", "bbq"])) return "Nướng";
-  return includesAny(name, ["chiên", "xào", "tempura", "bánh xèo"]) ? "Chiên" : "Nướng";
+  if (includesAny(name, ["xào", "rang", "lúc lắc"])) return "Xào";
+  return includesAny(name, ["chiên", "tempura", "bánh xèo"]) ? "Chiên" : "Nướng";
 };
 
 const proteinFor = (name: string): Ingredient[] => {
@@ -706,6 +710,24 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
       step("Để ráo", "Vớt lên giá có khay hứng để hơi thoát và giữ độ giòn.", "3 phút"),
       commonFinish,
     ],
+    "Xào": [
+      commonStart,
+      step("Sơ chế đồng đều", "Thái nguyên liệu theo kích thước tương đương và để thật ráo trước khi xào.", "10 phút"),
+      step("Pha sốt", "Hòa gia vị lỏng và khô trong bát riêng để có thể cho vào chảo cùng lúc.", "4 phút"),
+      step("Làm nóng chảo", "Làm nóng chảo đến khi nhiệt ổn định, thêm dầu và láng nhanh quanh thành chảo.", "3 phút", "Lửa lớn"),
+      step("Xào phần chính", "Xào nguyên liệu chính theo mẻ nhỏ, đảo nhanh đến vừa chín rồi lấy ra.", "4–7 phút", "Lửa lớn"),
+      step("Xào rau và hoàn thiện", "Cho rau cứng trước, rau mềm sau; thêm phần chính và sốt, đảo nhanh đến khi sốt bám đều.", "4 phút", "Lửa lớn"),
+      commonFinish,
+    ],
+    "Hấp luộc": [
+      commonStart,
+      step("Chuẩn bị nguyên liệu", "Làm sạch, cắt đồng đều và để ráo; ướp nhẹ nếu món cần giữ hương vị tự nhiên.", "10 phút"),
+      step("Chuẩn bị thiết bị", "Đun nước đến sôi ổn định; lượng nước không được chạm thực phẩm khi hấp.", "8 phút", "100°C"),
+      step("Làm chín phần chính", "Xếp nguyên liệu thoáng, đậy kín và làm chín theo kích thước; hạn chế mở nắp nhiều lần.", "12–25 phút", "Hơi nước mạnh"),
+      step("Kiểm tra độ chín", "Kiểm tra phần dày nhất và kéo dài thời gian nếu chưa đạt dấu hiệu chín an toàn.", "3 phút"),
+      step("Pha nước chấm", "Hòa gia vị chấm theo từng ít một, cân bằng vị mặn, chua và thơm phù hợp với món.", "5 phút"),
+      commonFinish,
+    ],
     "Gỏi salad": [
       commonStart,
       step("Làm ráo rau", "Rửa rau bằng nước sạch, ngâm lạnh nếu cần rồi để thật ráo để sốt không bị loãng.", "10 phút"),
@@ -746,6 +768,8 @@ const equipmentFor = (family: DishFamily) => {
     "Kho hầm": ["Nồi đáy dày", "Kẹp gắp", "Dao và thớt riêng"],
     "Nướng": ["Lò hoặc chảo nướng", "Khay nướng", "Nhiệt kế thực phẩm"],
     "Chiên": ["Chảo sâu lòng", "Kẹp gắp", "Giá để ráo", "Nhiệt kế dầu"],
+    "Xào": ["Chảo lớn hoặc wok", "Xẻng chảo", "Bát pha sốt", "Dao và thớt riêng"],
+    "Hấp luộc": ["Nồi hấp hoặc nồi sâu lòng", "Kẹp gắp", "Đĩa chịu nhiệt", "Nhiệt kế thực phẩm"],
     "Gỏi salad": ["Âu trộn lớn", "Rổ quay rau", "Dao và thớt riêng"],
     "Bánh bột": ["Âu trộn", "Cân bếp", "Phới lồng", "Thiết bị làm chín phù hợp"],
     "Món ngọt": ["Âu trộn", "Cân bếp", "Phới lồng", "Khuôn"],
@@ -785,13 +809,6 @@ const donenessFor = (family: DishFamily, name: string) => {
   return "Nguyên liệu chín đều, giữ được cấu trúc và sốt bám vừa phải.";
 };
 
-const variantSetFor = (family: DishFamily, name: string) => {
-  if (family === "Món ngọt") return ["Nguyên bản", "Bếp nhà", "Nhanh gọn", "Ít ngọt", "Đãi khách"];
-  if (family === "Chiên") return ["Nguyên bản", "Bếp nhà", "Nhanh gọn", "Nồi chiên không dầu", "Đãi khách"];
-  if (includesAny(name, ["ớt", "cay", "kim chi", "tom yum", "tikka", "vindaloo", "sa tế"])) return ["Nguyên bản", "Bếp nhà", "Nhanh gọn", "Ít cay", "Đãi khách"];
-  return ["Nguyên bản", "Bếp nhà", "Nhanh gọn", "Nhiều rau", "Đãi khách"];
-};
-
 const adjustIngredients = (items: Ingredient[], variation: string) =>
   items.map((item) => {
     if (variation === "Ít cay" && includesAny(item.item, ["ớt", "sa tế"])) {
@@ -821,6 +838,12 @@ const adjustSteps = (steps: RecipeStep[], variation: string) => {
   };
   const note = noteMap[variation];
   return note ? [steps[0], note, ...steps.slice(1)] : steps;
+};
+
+const exactRecipeImages: Record<string, string> = {
+  "Phở bò Hà Nội": "/food/pho-bo.webp",
+  "Bún bò Huế": "/food/bun-bo-hue.webp",
+  "Bánh xèo miền Tây": "/food/banh-xeo.webp",
 };
 
 const createRecipe = (
@@ -873,7 +896,7 @@ const createRecipe = (
     restTime,
     difficulty: variation === "Đãi khách" ? "Cầu kỳ" : variation === "Nhanh gọn" ? "Dễ" : "Vừa",
     servings: 4,
-    image: seed.image,
+    image: exactRecipeImages[baseName] ?? null,
     tags: [variation, family, regionIndex < 3 ? "Món Việt" : seed.continent, nameIndex % 3 === 0 ? "Nổi tiếng" : "Bếp nhà"],
     ingredients,
     steps,
@@ -896,12 +919,71 @@ const createRecipe = (
   };
 };
 
-const coreRecipes: Recipe[] = regionSeeds.flatMap((seed, regionIndex) =>
-  seed.names.flatMap((baseName, nameIndex) => {
-    const family = signatureProfiles[baseName]?.family ?? inferFamily(baseName);
-    return variantSetFor(family, baseName).map((variation, variationIndex) =>
-      createRecipe(seed, baseName, regionIndex, nameIndex, variation, variationIndex),
-    );
+const additionalVietnameseNames: Record<
+  Extract<RegionKey, "Miền Bắc" | "Miền Trung" | "Miền Nam">,
+  string[]
+> = {
+  "Miền Bắc": [
+    "Bún ốc Hà Nội", "Phở gà Hà Nội", "Bánh đa trộn", "Miến gà", "Cháo sườn",
+    "Bánh giò", "Bánh đúc nóng", "Bánh khúc", "Bún cá rô đồng", "Bún bung dọc mùng",
+    "Bún ngan", "Bún đậu mắm tôm", "Cá rô kho tương", "Cá trắm kho riềng",
+    "Gà rang gừng", "Thịt chưng mắm tép", "Chả lá lốt", "Đậu phụ tẩm hành",
+    "Canh sườn nấu sấu", "Canh cá nấu dọc", "Canh bóng thả", "Rau muống xào tỏi",
+    "Cải làn xào bò", "Su hào xào trứng", "Nộm đu đủ bò khô", "Nộm sứa",
+    "Xôi khúc", "Xôi gấc", "Bánh gai", "Bánh chưng", "Bánh dày đậu xanh",
+    "Bánh tro mật mía", "Chè kho", "Tào phớ",
+  ],
+  "Miền Trung": [
+    "Bún nghệ Huế", "Bún hến", "Bánh ép Huế", "Bánh nậm", "Bánh ít lá gai",
+    "Cơm âm phủ", "Vả trộn tôm thịt", "Tôm chua Huế", "Cá bống thệ kho tiêu",
+    "Canh mít non nấu tôm", "Bún giấm nuốc", "Bánh canh Nam Phổ", "Chè hạt sen Huế",
+    "Cơm gà Hội An", "Hoành thánh Hội An", "Bánh mì Hội An", "Bê thui Cầu Mống",
+    "Gỏi cá Nam Ô", "Bún chả cá Đà Nẵng", "Bánh tráng đập", "Mít trộn",
+    "Don Quảng Ngãi", "Cá bống sông Trà kho", "Ram bắp Quảng Ngãi",
+    "Bánh hỏi lòng heo", "Bún sứa Nha Trang", "Nem nướng Nha Trang",
+    "Bánh căn Nha Trang", "Gỏi cá mai", "Gà nướng muối ớt",
+    "Thịt heo ngâm nước mắm", "Chè đậu ván", "Chè bột lọc heo quay",
+  ],
+  "Miền Nam": [
+    "Hủ tiếu Mỹ Tho", "Hủ tiếu Sa Đéc", "Bún kèn Phú Quốc", "Bún quậy Phú Quốc",
+    "Bánh tằm bì", "Bánh cống Sóc Trăng", "Bánh pía Sóc Trăng", "Bánh bò thốt nốt",
+    "Bánh lá mơ", "Bánh đúc lá dứa", "Cơm cháy kho quẹt", "Kho quẹt rau củ",
+    "Cá lóc nướng trui", "Cá tai tượng chiên xù", "Gà hấp lá chanh", "Vịt nấu chao",
+    "Bò kho Nam Bộ", "Phá lấu bò", "Bò né", "Hủ tiếu bò kho", "Bún thịt nướng",
+    "Bì cuốn", "Gỏi ngó sen tôm thịt", "Gỏi xoài khô cá lóc",
+    "Canh khổ qua nhồi thịt", "Canh bầu nấu tôm", "Lẩu cá kèo", "Lẩu gà lá giang",
+    "Chè chuối", "Chè đậu trắng", "Chè khoai môn", "Bánh da lợn", "Chuối nếp nướng",
+  ],
+};
+
+const selectedRecipeSeeds: Array<{ seed: RegionSeed; baseName: string }> = [
+  ...regionSeeds.slice(0, 3).flatMap((seed) =>
+    seed.names.map((baseName) => ({ seed, baseName })),
+  ),
+  ...regionSeeds.slice(0, 3).flatMap((seed) =>
+    additionalVietnameseNames[
+      seed.region as Extract<RegionKey, "Miền Bắc" | "Miền Trung" | "Miền Nam">
+    ].map((baseName) => ({ seed, baseName })),
+  ),
+  ...regionSeeds.slice(3).flatMap((seed, worldIndex) =>
+    seed.names
+      .filter((baseName) => baseName !== "Cơm chiên Dương Châu")
+      .slice(0, worldIndex === 6 ? 12 : 13)
+      .map((baseName) => ({ seed, baseName })),
+  ),
+];
+
+const coreRecipes: Recipe[] = selectedRecipeSeeds.map(
+  ({ seed, baseName }, index) => ({
+    ...createRecipe(
+      seed,
+      baseName,
+      regionSeeds.findIndex((item) => item.region === seed.region),
+      index,
+      "Nguyên bản",
+      0,
+    ),
+    id: index + 1,
   }),
 );
 
@@ -1032,7 +1114,7 @@ const createCanteenRecipe = (dish: CanteenDishSeed, index: number): Recipe => {
   const totalCook = dish.method === "Kho" || dish.method === "Cà ri" ? 45 : 30;
 
   return {
-    id: 1001 + index,
+    id: coreRecipes.length + index + 1,
     name: dish.name,
     baseName: dish.name,
     region: dish.region,
@@ -1045,7 +1127,7 @@ const createCanteenRecipe = (dish: CanteenDishSeed, index: number): Recipe => {
     restTime: 5,
     difficulty: "Vừa",
     servings: 4,
-    image: "/food/com-quan.webp",
+    image: null,
     tags: ["Cơm quán", "Cơm bình dân", "Cơm văn phòng", dish.category, dish.method],
     ingredients,
     steps,
@@ -1075,6 +1157,44 @@ const createCanteenRecipe = (dish: CanteenDishSeed, index: number): Recipe => {
 export const canteenRecipes: Recipe[] = canteenDishSeeds.map(createCanteenRecipe);
 export const recipes: Recipe[] = [...coreRecipes, ...canteenRecipes];
 
+const duplicateNames = recipes.filter(
+  (recipe, index) =>
+    recipes.findIndex(
+      (item) => lower(item.name).trim() === lower(recipe.name).trim(),
+    ) !== index,
+);
+
+const recipeFingerprint = (recipe: Recipe) =>
+  JSON.stringify({
+    ingredients: recipe.ingredients.map((item) => [
+      item.amount,
+      item.unit,
+      lower(item.item),
+      item.prep ?? "",
+      item.group,
+    ]),
+    steps: recipe.steps.map((item) => [
+      lower(item.title),
+      lower(item.instruction),
+      item.duration ?? "",
+      item.temperature ?? "",
+    ]),
+  });
+
+const recipeFingerprints = new Set<string>();
+const duplicateContent = recipes.filter((recipe) => {
+  const fingerprint = recipeFingerprint(recipe);
+  if (recipeFingerprints.has(fingerprint)) return true;
+  recipeFingerprints.add(fingerprint);
+  return false;
+});
+
+const mismatchedImages = recipes.filter(
+  (recipe) =>
+    recipe.image !== null &&
+    exactRecipeImages[recipe.baseName] !== recipe.image,
+);
+
 const invalidRecipes = recipes.filter(
   (recipe) =>
     recipe.ingredients.length < 8 ||
@@ -1082,8 +1202,17 @@ const invalidRecipes = recipes.filter(
     recipe.ingredients.some((item) => /nguyên liệu chính cho|vừa đủ/i.test(item.item)),
 );
 
-if (recipes.length !== 1050 || canteenRecipes.length !== 50 || invalidRecipes.length > 0) {
-  throw new Error(`Dữ liệu công thức không đạt chuẩn: ${recipes.length} mục, ${invalidRecipes.length} mục chưa đủ chi tiết.`);
+if (
+  recipes.length !== 300 ||
+  canteenRecipes.length !== 50 ||
+  duplicateNames.length > 0 ||
+  duplicateContent.length > 0 ||
+  mismatchedImages.length > 0 ||
+  invalidRecipes.length > 0
+) {
+  throw new Error(
+    `Dữ liệu không đạt chuẩn: ${recipes.length} món, ${duplicateNames.length} tên trùng, ${duplicateContent.length} công thức trùng, ${mismatchedImages.length} ảnh sai, ${invalidRecipes.length} mục thiếu chi tiết.`,
+  );
 }
 
 export const regions: Array<{
@@ -1091,17 +1220,26 @@ export const regions: Array<{
   eyebrow: string;
   description: string;
 }> = [
-  { key: "Tất cả", eyebrow: "1.050 công thức", description: "Kho ẩm thực toàn cầu" },
-  { key: "Miền Bắc", eyebrow: "116 món", description: "Thanh nhã, tinh tế" },
-  { key: "Miền Trung", eyebrow: "115 món", description: "Đậm đà, cay thơm" },
-  { key: "Miền Nam", eyebrow: "119 món", description: "Hào sảng, phong phú" },
-  { key: "Đông Á", eyebrow: "100 món", description: "Umami cân bằng" },
-  { key: "Đông Nam Á", eyebrow: "100 món", description: "Rực rỡ thảo mộc" },
-  { key: "Nam Á", eyebrow: "100 món", description: "Ấm nồng gia vị" },
-  { key: "Châu Âu", eyebrow: "100 món", description: "Cổ điển thanh lịch" },
-  { key: "Châu Mỹ", eyebrow: "100 món", description: "Phóng khoáng đa sắc" },
-  { key: "Châu Phi", eyebrow: "100 món", description: "Ấm áp, giàu hương" },
-  { key: "Châu Đại Dương", eyebrow: "100 món", description: "Tươi sáng tự nhiên" },
+  { key: "Tất cả", eyebrow: "300 công thức", description: "Ưu tiên tinh hoa món Việt" },
+  { key: "Miền Bắc", eyebrow: "70 món", description: "Thanh nhã, tinh tế" },
+  { key: "Miền Trung", eyebrow: "64 món", description: "Đậm đà, cay thơm" },
+  { key: "Miền Nam", eyebrow: "76 món", description: "Hào sảng, phong phú" },
+  { key: "Đông Á", eyebrow: "13 món", description: "Umami cân bằng" },
+  { key: "Đông Nam Á", eyebrow: "13 món", description: "Rực rỡ thảo mộc" },
+  { key: "Nam Á", eyebrow: "13 món", description: "Ấm nồng gia vị" },
+  { key: "Châu Âu", eyebrow: "13 món", description: "Cổ điển thanh lịch" },
+  { key: "Châu Mỹ", eyebrow: "13 món", description: "Phóng khoáng đa sắc" },
+  { key: "Châu Phi", eyebrow: "13 món", description: "Ấm áp, giàu hương" },
+  { key: "Châu Đại Dương", eyebrow: "12 món", description: "Tươi sáng tự nhiên" },
 ];
 
-export const featuredRecipeIds = [1, 101, 201, 6, 106, 206];
+export const featuredRecipeIds = [
+  "Phở bò Hà Nội",
+  "Bún bò Huế",
+  "Bánh xèo miền Tây",
+  "Bún chả Hà Nội",
+  "Mì Quảng",
+  "Cơm tấm sườn bì",
+]
+  .map((name) => recipes.find((recipe) => recipe.name === name)?.id)
+  .filter((id): id is number => typeof id === "number");

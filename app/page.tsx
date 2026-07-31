@@ -44,6 +44,46 @@ const ArrowIcon = () => (
   </svg>
 );
 
+const familyLabels = [
+  "Món nước",
+  "Cơm",
+  "Mì xào",
+  "Cà ri",
+  "Kho hầm",
+  "Nướng",
+  "Chiên",
+  "Xào",
+  "Hấp luộc",
+  "Gỏi salad",
+  "Bánh bột",
+  "Món ngọt",
+];
+
+function RecipeArtwork({
+  recipe,
+  modal = false,
+}: {
+  recipe: Recipe;
+  modal?: boolean;
+}) {
+  const family =
+    recipe.tags.find((tag) => familyLabels.includes(tag)) ??
+    (recipe.tags.includes("Cơm quán") ? "Cơm quán" : "Món Việt");
+  const tone = recipe.region
+    .toLocaleLowerCase("vi")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-");
+
+  return (
+    <span className={`recipe-art recipe-art-${tone} ${modal ? "modal-art" : ""}`}>
+      <small>{family}</small>
+      <strong>{recipe.baseName}</strong>
+      <em>Minh họa theo nhóm món</em>
+    </span>
+  );
+}
+
 function RecipeCard({
   recipe,
   favorite,
@@ -58,7 +98,11 @@ function RecipeCard({
   return (
     <article className="recipe-card">
       <button className="recipe-image" onClick={onOpen} aria-label={`Xem ${recipe.name}`}>
-        <Image src={recipe.image} alt={recipe.name} fill sizes="(max-width: 620px) 100vw, (max-width: 1180px) 50vw, 25vw" />
+        {recipe.image ? (
+          <Image src={recipe.image} alt={recipe.name} fill sizes="(max-width: 620px) 100vw, (max-width: 1180px) 50vw, 25vw" />
+        ) : (
+          <RecipeArtwork recipe={recipe} />
+        )}
         <span className="region-badge">{recipe.region}</span>
       </button>
       <div className="recipe-card-body">
@@ -133,7 +177,11 @@ function RecipeModal({
       >
         <button className="modal-close" onClick={onClose} aria-label="Đóng công thức">×</button>
         <div className="modal-hero">
-          <Image src={recipe.image} alt={recipe.name} fill sizes="(max-width: 980px) 100vw, 980px" priority />
+          {recipe.image ? (
+            <Image src={recipe.image} alt={recipe.name} fill sizes="(max-width: 980px) 100vw, 980px" priority />
+          ) : (
+            <RecipeArtwork recipe={recipe} modal />
+          )}
           <div className="modal-hero-overlay">
             <span>{recipe.region} · {recipe.origin}</span>
             <h2 id="recipe-modal-title">{recipe.name}</h2>
@@ -412,7 +460,7 @@ export default function Home() {
           <a href="#com-quan" onClick={() => setMenuOpen(false)}>Cơm quán</a>
           <a href="#thuc-don-tuan" onClick={() => setMenuOpen(false)}>Thực đơn tuần</a>
           <a href="#mo-quan" onClick={() => setMenuOpen(false)}>Mở quán</a>
-          <a href="#kho-mon" onClick={() => setMenuOpen(false)}>1.050 món</a>
+          <a href="#kho-mon" onClick={() => setMenuOpen(false)}>300 món chọn lọc</a>
         </nav>
         <div className="header-actions">
           <button
@@ -440,7 +488,8 @@ export default function Home() {
           <h1>Hôm nay,<br />mình <em>ăn gì?</em></h1>
           <p className="hero-description">
             Từ mâm cơm ba miền đến tinh hoa ẩm thực năm châu.
-            1.050 công thức được kể bằng hương vị, ký ức và niềm vui vào bếp.
+            300 công thức chọn lọc, trong đó 210 món Việt Nam được ưu tiên
+            theo ba miền và từng kỹ thuật nấu đặc trưng.
           </p>
           <div className="hero-search">
             <SearchIcon />
@@ -461,30 +510,30 @@ export default function Home() {
               Gợi ý món hôm nay <ArrowIcon />
             </button>
             <button className="text-cta" onClick={explore}>
-              Khám phá 1.050 món
+              Khám phá 300 món
             </button>
           </div>
           <div className="hero-stats" aria-label="Thống kê kho món">
-            <div><strong>1.050</strong><span>công thức</span></div>
+            <div><strong>300</strong><span>món duy nhất</span></div>
             <div><strong>3 miền</strong><span>Việt Nam</span></div>
             <div><strong>6</strong><span>châu lục</span></div>
           </div>
         </div>
         <div className="hero-visual" aria-label="Ba món Việt Nam nổi tiếng">
           <div className="pattern-lotus" />
-          <button className="food-frame food-frame-main" onClick={() => setSelectedRecipe(recipes[0])}>
+          <button className="food-frame food-frame-main" onClick={() => setSelectedRecipe(featured[0])}>
             <Image src="/food/pho-bo.webp" alt="Phở bò Hà Nội" fill sizes="(max-width: 900px) 64vw, 32vw" priority />
             <span><small>Tinh hoa Bắc Bộ</small>Phở bò Hà Nội</span>
           </button>
-          <button className="food-frame food-frame-top" onClick={() => setSelectedRecipe(recipes[100])}>
+          <button className="food-frame food-frame-top" onClick={() => setSelectedRecipe(featured[1])}>
             <Image src="/food/bun-bo-hue.webp" alt="Bún bò Huế" fill sizes="(max-width: 900px) 38vw, 22vw" priority />
             <span><small>Đậm đà miền Trung</small>Bún bò Huế</span>
           </button>
-          <button className="food-frame food-frame-bottom" onClick={() => setSelectedRecipe(recipes[200])}>
+          <button className="food-frame food-frame-bottom" onClick={() => setSelectedRecipe(featured[2])}>
             <Image src="/food/banh-xeo.webp" alt="Bánh xèo miền Tây" fill sizes="(max-width: 900px) 42vw, 24vw" priority />
             <span><small>Hào sảng phương Nam</small>Bánh xèo</span>
           </button>
-          <span className="stamp">1050<br /><small>món ngon</small></span>
+          <span className="stamp">300<br /><small>món chọn lọc</small></span>
         </div>
       </section>
 
@@ -792,7 +841,7 @@ export default function Home() {
                 setQuery(event.target.value);
                 setVisibleCount(12);
               }}
-              placeholder="Tìm trong 1.050 món..."
+              placeholder="Tìm trong 300 món..."
             />
           </label>
         </div>
@@ -854,7 +903,7 @@ export default function Home() {
       <footer>
         <div className="footer-brand">
           <span className="brand-mark">Ă</span>
-          <div><strong>Ăn gì hôm nay</strong><p>1.050 câu chuyện · 1.050 món ngon</p></div>
+          <div><strong>Ăn gì hôm nay</strong><p>300 công thức · Không trùng lặp</p></div>
         </div>
         <div className="footer-links">
           <a href="#mon-viet">Món Việt</a>

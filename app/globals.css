@@ -689,6 +689,111 @@ svg {
   width: 100%;
 }
 
+.recipe-art {
+  align-items: flex-start;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(247, 240, 228, 0.17) 0 54px, transparent 55px),
+    radial-gradient(circle at 76% 28%, rgba(185, 154, 93, 0.28) 0 92px, transparent 93px),
+    linear-gradient(145deg, #173f35, #0d2d27);
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  padding: 28px;
+  position: absolute;
+  text-align: left;
+}
+
+.recipe-art::after {
+  border: 1px solid rgba(247, 240, 228, 0.18);
+  border-radius: 50%;
+  content: "";
+  height: 210px;
+  position: absolute;
+  right: -82px;
+  top: -70px;
+  width: 210px;
+}
+
+.recipe-art small {
+  color: #efd699;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.17em;
+  position: relative;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.recipe-art strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(26px, 2.2vw, 38px);
+  font-weight: 500;
+  line-height: 1.05;
+  margin-top: 10px;
+  max-width: 82%;
+  position: relative;
+  z-index: 1;
+}
+
+.recipe-art em {
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 0.12em;
+  margin-top: 18px;
+  padding-top: 9px;
+  position: relative;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.recipe-art-mien-trung {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(247, 240, 228, 0.16) 0 54px, transparent 55px),
+    linear-gradient(145deg, #8f2b21, #4f1c18);
+}
+
+.recipe-art-mien-nam {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(247, 240, 228, 0.2) 0 54px, transparent 55px),
+    linear-gradient(145deg, #8e5a26, #4f341c);
+}
+
+.recipe-art-dong-a,
+.recipe-art-dong-nam-a,
+.recipe-art-nam-a {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(247, 240, 228, 0.18) 0 54px, transparent 55px),
+    linear-gradient(145deg, #473e71, #282342);
+}
+
+.recipe-art-chau-au,
+.recipe-art-chau-my,
+.recipe-art-chau-phi,
+.recipe-art-chau-dai-duong {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(247, 240, 228, 0.2) 0 54px, transparent 55px),
+    linear-gradient(145deg, #36526b, #1b3041);
+}
+
+.recipe-art.modal-art {
+  padding: 42px;
+}
+
+.recipe-art.modal-art strong {
+  font-size: clamp(42px, 6vw, 76px);
+  max-width: 72%;
+  opacity: 0.18;
+}
+
+.recipe-art.modal-art em {
+  display: none;
+}
+
 .recipe-card:hover .recipe-image img {
   transform: scale(1.045);
 }
