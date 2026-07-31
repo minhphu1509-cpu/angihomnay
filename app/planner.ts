@@ -45,6 +45,12 @@ export type VietnameseTrayDay = {
   dinner: VietnameseTrayMeal;
 };
 
+export type VietnameseTrayHistory = {
+  savory: string[];
+  soup: string[];
+  vegetable: string[];
+};
+
 export const createEmptyPlanner = (): PlannerSlot[] =>
   plannerDays.map((day) => ({ day, recipeId: null, servings: 4 }));
 
@@ -121,25 +127,126 @@ export const createSamplePlanner = (allRecipes: Recipe[]): PlannerSlot[] => {
   }));
 };
 
-const lunchMeals: Omit<VietnameseTrayMeal, "session">[] = [
-  { rice: "Cơm trắng", soup: "Canh rau ngót thịt băm", savory: "Thịt rang cháy cạnh", vegetable: "Rau muống xào tỏi", boiled: "Dưa leo", note: "Bữa quen vị Bắc, dễ nấu số lượng lớn." },
-  { rice: "Cơm trắng", soup: "Canh bí xanh nấu tôm", savory: "Cá basa kho tộ", vegetable: "Bắp cải luộc", boiled: "Cà pháo", note: "Kho cá trước, rau làm sát giờ ăn." },
-  { rice: "Cơm trắng", soup: "Canh cải xanh", savory: "Gà kho gừng", vegetable: "Giá hẹ xào", boiled: "Dưa leo", note: "Gà ướp 20-30 phút cho thấm." },
-  { rice: "Cơm trắng", soup: "Canh chua cá", savory: "Đậu hũ sốt cà", vegetable: "Rau lang luộc", boiled: "Rau sống", note: "Phù hợp ngày muốn giảm thịt đỏ." },
-  { rice: "Cơm trắng", soup: "Canh mướp mồng tơi", savory: "Sườn rim mặn ngọt", vegetable: "Su su xào tỏi", boiled: "Kim chi hoặc dưa góp", note: "Sườn chần trước để món trong và thơm." },
-  { rice: "Cơm trắng", soup: "Canh khoai tây cà rốt", savory: "Bò xào hành cần", vegetable: "Đậu que luộc", boiled: "Trứng luộc", note: "Bò chỉ xào nhanh để mềm." },
-  { rice: "Cơm trắng", soup: "Canh cải chua", savory: "Cá diêu hồng chiên", vegetable: "Đậu bắp luộc", boiled: "Nước mắm gừng", note: "Cá lau thật khô trước khi chiên." },
+const soups = [
+  "Canh rau ngót thịt băm",
+  "Canh bí xanh nấu tôm",
+  "Canh cải xanh",
+  "Canh chua cá",
+  "Canh mướp mồng tơi",
+  "Canh khoai tây cà rốt",
+  "Canh cải chua",
+  "Canh bầu nấu tôm",
+  "Canh rau dền",
+  "Canh bí đỏ",
+  "Canh khổ qua nhồi thịt",
+  "Canh rong biển đậu hũ",
+  "Canh nấm",
+  "Canh chua rau muống",
+  "Canh cua rau đay",
+  "Canh cải ngọt nấu thịt",
+  "Canh thiên lý nấu tôm",
+  "Canh cà chua trứng",
+  "Canh hẹ đậu hũ",
+  "Canh bắp cải cuộn thịt",
 ];
 
-const dinnerMeals: Omit<VietnameseTrayMeal, "session">[] = [
-  { rice: "Cơm trắng", soup: "Canh bầu nấu tôm", savory: "Trứng chiên thịt băm", vegetable: "Cải thìa xào tỏi", boiled: "Cà chua", note: "Bữa chiều nhẹ, tận dụng thịt băm." },
-  { rice: "Cơm trắng", soup: "Canh rau dền", savory: "Tôm rim mặn ngọt", vegetable: "Rau muống luộc", boiled: "Nước luộc rau vắt chanh", note: "Tôm rim vừa lửa để không khô." },
-  { rice: "Cơm trắng", soup: "Canh bí đỏ", savory: "Thịt kho trứng", vegetable: "Cải thảo xào", boiled: "Dưa leo", note: "Kho dư một phần nhỏ cho hộp cơm hôm sau." },
-  { rice: "Cơm trắng", soup: "Canh khổ qua nhồi thịt", savory: "Cá nục kho cà", vegetable: "Rau cải luộc", boiled: "Rau thơm", note: "Cân vị mặn vì cá kho đã đậm." },
-  { rice: "Cơm trắng", soup: "Canh rong biển đậu hũ", savory: "Gà xào sả ớt", vegetable: "Đậu que xào tỏi", boiled: "Dưa góp", note: "Tách ớt riêng nếu có người ăn ít cay." },
-  { rice: "Cơm trắng", soup: "Canh nấm", savory: "Cá thu sốt cà", vegetable: "Bông cải luộc", boiled: "Nước tương gừng", note: "Sốt cà nấu trước, cá cho vào sau." },
-  { rice: "Cơm trắng", soup: "Canh chua rau muống", savory: "Thịt kho tiêu", vegetable: "Mướp xào giá", boiled: "Xoài xanh hoặc dưa leo", note: "Bữa cuối tuần gọn, ít món chiên." },
+const savoryDishes = [
+  "Thịt rang cháy cạnh",
+  "Cá basa kho tộ",
+  "Gà kho gừng",
+  "Đậu hũ sốt cà",
+  "Sườn rim mặn ngọt",
+  "Bò xào hành cần",
+  "Cá diêu hồng chiên",
+  "Trứng chiên thịt băm",
+  "Tôm rim mặn ngọt",
+  "Thịt kho trứng",
+  "Cá nục kho cà",
+  "Gà xào sả ớt",
+  "Cá thu sốt cà",
+  "Thịt kho tiêu",
+  "Đậu hũ kho nấm",
+  "Cá rô kho nghệ",
+  "Thịt băm chưng mắm tép",
+  "Gà rim nước mắm",
+  "Chả lá lốt",
+  "Cá bạc má kho thơm",
+  "Trứng cút kho thịt",
+  "Tép rang khế",
+  "Mực xào cần tỏi",
+  "Cá trứng chiên giòn",
 ];
+
+const vegetables = [
+  "Rau muống xào tỏi",
+  "Bắp cải luộc",
+  "Giá hẹ xào",
+  "Rau lang luộc",
+  "Su su xào tỏi",
+  "Đậu que luộc",
+  "Đậu bắp luộc",
+  "Cải thìa xào tỏi",
+  "Rau muống luộc",
+  "Cải thảo xào",
+  "Rau cải luộc",
+  "Đậu que xào tỏi",
+  "Bông cải luộc",
+  "Mướp xào giá",
+  "Cải ngọt xào nấm",
+  "Bí đỏ xào tỏi",
+  "Cà tím nướng mỡ hành",
+  "Bầu luộc",
+  "Rau dền luộc",
+  "Nấm xào cải thìa",
+];
+
+const sideDishes = [
+  "Dưa leo",
+  "Cà pháo",
+  "Rau sống",
+  "Dưa góp",
+  "Trứng luộc",
+  "Nước mắm gừng",
+  "Cà chua",
+  "Nước luộc rau vắt chanh",
+  "Rau thơm",
+  "Nước tương gừng",
+  "Xoài xanh hoặc dưa leo",
+  "Đậu phộng rang",
+  "Kim chi hoặc dưa cải",
+  "Muối mè",
+];
+
+const mealNotes = [
+  "Ưu tiên rau mùa để dễ mua và đúng ngân sách.",
+  "Món mặn nên nấu trước, rau làm sát giờ ăn.",
+  "Có thể chừa một phần món kho cho hộp cơm hôm sau.",
+  "Tách ớt riêng nếu nhà có người ăn ít cay.",
+  "Bữa cân bằng, phù hợp nấu nhanh cho gia đình.",
+  "Canh thanh và món mặn đậm vừa phải để ăn với cơm.",
+  "Hạn chế chiên lại nhiều lần để món không bị khô.",
+];
+
+const hashSeed = (value: string) =>
+  [...value].reduce((hash, character) => {
+    const nextHash = (hash << 5) - hash + character.charCodeAt(0);
+    return nextHash >>> 0;
+  }, 2166136261);
+
+const createSeededRandom = (seed: number) => {
+  let value = seed || 1;
+  return () => {
+    value = (value * 1664525 + 1013904223) % 4294967296;
+    return value / 4294967296;
+  };
+};
+
+const shuffled = <T,>(items: T[], random: () => number, blocked: string[] = []) => {
+  const blockedSet = new Set(blocked);
+  const preferred = items.filter((item) => !blockedSet.has(String(item)));
+  const fallback = items.filter((item) => blockedSet.has(String(item)));
+  return [...preferred, ...fallback].sort(() => random() - 0.5);
+};
 
 const budgetBandFor = (budgetPerPerson: number) => {
   if (budgetPerPerson < 30000) return "Tiết kiệm: ưu tiên trứng, đậu, cá nhỏ, rau mùa.";
@@ -148,12 +255,44 @@ const budgetBandFor = (budgetPerPerson: number) => {
   return "Nâng cấp: có thể thêm trái cây, món phụ hoặc phần đạm tốt hơn.";
 };
 
-export const buildVietnameseTrayWeek = (): VietnameseTrayDay[] =>
-  plannerDays.map((day, index) => ({
+export const buildVietnameseTrayWeek = (
+  seed = "default-week",
+  previousHistory?: Partial<VietnameseTrayHistory>,
+): VietnameseTrayDay[] => {
+  const random = createSeededRandom(hashSeed(seed));
+  const soupPlan = shuffled(soups, random, previousHistory?.soup).slice(0, 14);
+  const savoryPlan = shuffled(savoryDishes, random, previousHistory?.savory).slice(0, 14);
+  const vegetablePlan = shuffled(vegetables, random, previousHistory?.vegetable).slice(0, 14);
+  const sidePlan = shuffled(sideDishes, random);
+  const notePlan = shuffled(mealNotes, random);
+
+  const buildMeal = (index: number, session: VietnameseMealSession): VietnameseTrayMeal => ({
+    session,
+    rice: "Cơm trắng",
+    soup: soupPlan[index],
+    savory: savoryPlan[index],
+    vegetable: vegetablePlan[index],
+    boiled: sidePlan[index % sidePlan.length],
+    note: notePlan[index % notePlan.length],
+  });
+
+  return plannerDays.map((day, index) => ({
     day,
-    lunch: { session: "Bữa trưa", ...lunchMeals[index] },
-    dinner: { session: "Bữa chiều", ...dinnerMeals[index] },
+    lunch: buildMeal(index * 2, "Bữa trưa"),
+    dinner: buildMeal(index * 2 + 1, "Bữa chiều"),
   }));
+};
+
+export const summarizeVietnameseTrayHistory = (
+  week: VietnameseTrayDay[],
+): VietnameseTrayHistory => {
+  const meals = week.flatMap((day) => [day.lunch, day.dinner]);
+  return {
+    soup: meals.map((meal) => meal.soup),
+    savory: meals.map((meal) => meal.savory),
+    vegetable: meals.map((meal) => meal.vegetable),
+  };
+};
 
 export const estimateMealBudget = (diners: number, budgetPerPerson: number) => ({
   perMeal: diners * budgetPerPerson,
