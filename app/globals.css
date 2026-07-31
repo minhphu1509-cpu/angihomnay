@@ -1275,6 +1275,28 @@ footer {
   max-width: 650px;
 }
 
+.modal-intro > div:first-child {
+  max-width: 650px;
+}
+
+.modal-intro > div:first-child > p {
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 10px 0 0;
+}
+
+.variation-label {
+  background: var(--green-soft);
+  border-radius: 50px;
+  color: var(--green);
+  display: inline-flex;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  padding: 7px 11px;
+  text-transform: uppercase;
+}
+
 .save-recipe {
   align-items: center;
   background: transparent;
@@ -1315,16 +1337,87 @@ footer {
 }
 
 .ingredient-list li {
+  align-items: start;
   border-bottom: 1px dashed var(--line);
   color: var(--muted);
+  display: flex;
   font-size: 13px;
+  gap: 10px;
+  justify-content: space-between;
   padding: 11px 0;
 }
 
-.ingredient-list li::before {
+.ingredient-list li strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.ingredient-list li small {
+  color: #988a7d;
+  font-size: 10px;
+  line-height: 1.4;
+  max-width: 88px;
+  text-align: right;
+}
+
+.ingredient-list li em {
   color: var(--red);
-  content: "•";
-  margin-right: 10px;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.ingredient-group {
+  margin-top: 22px;
+}
+
+.ingredient-group h4 {
+  color: var(--red);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  margin: 0 0 3px;
+  text-transform: uppercase;
+}
+
+.serving-control {
+  align-items: center;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 10px 12px;
+}
+
+.serving-control > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.serving-control > div {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.serving-control button {
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  font-size: 17px;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.serving-control strong {
+  font-size: 11px;
+  min-width: 56px;
+  text-align: center;
 }
 
 .step-list {
@@ -1354,7 +1447,31 @@ footer {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
-  margin: 5px 0 0;
+  margin: 7px 0 0;
+}
+
+.step-heading {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.step-heading > strong {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.step-heading > span {
+  background: var(--cream);
+  border-radius: 50px;
+  color: var(--red);
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 6px 8px;
 }
 
 .step-list li.done button {
@@ -1385,6 +1502,80 @@ footer {
   font-size: 12px;
   line-height: 1.6;
   margin: 5px 0 0;
+}
+
+.recipe-detail-grid {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 42px;
+  padding-top: 34px;
+}
+
+.recipe-detail-grid section {
+  background: var(--cream-light);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  min-height: 168px;
+  padding: 22px;
+}
+
+.recipe-detail-grid section.safety-card {
+  background: #f8ebe5;
+  border-color: #e4b9a8;
+}
+
+.recipe-detail-grid .section-kicker {
+  font-size: 8px;
+  margin-bottom: 8px;
+}
+
+.recipe-detail-grid h4 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+.recipe-detail-grid p,
+.recipe-detail-grid li {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.recipe-detail-grid p {
+  margin: 0;
+}
+
+.recipe-detail-grid ul {
+  margin: 0;
+  padding-left: 17px;
+}
+
+.allergen-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.allergen-list span {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 50px;
+  color: var(--ink);
+  font-size: 10px;
+  padding: 7px 9px;
+}
+
+.source-note {
+  border-top: 1px dashed var(--line);
+  color: #9a8d80;
+  font-size: 9px;
+  line-height: 1.6;
+  margin: 30px 0 0;
+  padding-top: 18px;
 }
 
 @keyframes fadeIn {
@@ -1660,6 +1851,21 @@ footer {
 
   .recipe-columns {
     grid-template-columns: 1fr;
+  }
+
+  .recipe-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .modal-stats {
+    flex-wrap: wrap;
+    gap: 14px 22px;
   }
 }
 
