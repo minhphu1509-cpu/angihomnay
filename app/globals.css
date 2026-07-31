@@ -2256,12 +2256,28 @@ footer {
   padding: 12px;
 }
 
-.tray-day h4 {
+.tray-day.selected {
+  border-color: var(--red);
+  box-shadow: 0 10px 24px rgba(194, 58, 45, 0.12);
+}
+
+.tray-day-button {
+  background: transparent;
+  border: 0;
   color: var(--red);
+  cursor: pointer;
+  display: block;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 22px;
   font-weight: 500;
   margin: 0 0 12px;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.tray-day-button:hover {
+  color: var(--green);
 }
 
 .tray-meal {
@@ -2326,6 +2342,75 @@ footer {
   line-height: 1.45;
   margin: 10px 0 0;
   padding-top: 8px;
+}
+
+.tray-shopping {
+  background: var(--cream-light);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(220px, 0.32fr) 1fr;
+  margin-top: 18px;
+  padding: clamp(16px, 2.4vw, 24px);
+}
+
+.tray-shopping h4 {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 2.6vw, 34px);
+  font-weight: 500;
+  line-height: 1;
+  margin: 6px 0 10px;
+}
+
+.tray-shopping p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.tray-shopping p b {
+  color: var(--red);
+}
+
+.tray-shopping ul {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tray-shopping li {
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(34, 28, 24, 0.08);
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+}
+
+.tray-shopping li span {
+  color: var(--green);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tray-shopping li strong {
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.tray-shopping li em,
+.tray-shopping li small {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1.35;
 }
 
 .planner-days {
@@ -3274,6 +3359,10 @@ footer {
     grid-template-columns: repeat(7, minmax(220px, 1fr));
   }
 
+  .tray-shopping {
+    grid-template-columns: 1fr;
+  }
+
   .planner-days {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3473,6 +3562,10 @@ footer {
   .tray-budget {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .tray-shopping ul {
+    grid-template-columns: 1fr;
   }
 
   .planner-days {
