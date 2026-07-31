@@ -1,13 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Recipe } from "./recipes";
 import {
   PlannerSlot,
   ShoppingItem,
+  VietnameseTrayHistory,
   buildVietnameseTrayWeek,
   estimateMealBudget,
+  summarizeVietnameseTrayHistory,
 } from "./planner";
 
 type MealPlannerProps = {
@@ -49,11 +51,16 @@ export default function MealPlanner({
 }: MealPlannerProps) {
   const [trayDiners, setTrayDiners] = useState(4);
   const [budgetPerPerson, setBudgetPerPerson] = useState(30000);
-  const vietnameseTrayWeek = useMemo(() => buildVietnameseTrayWeek(), []);
+  const [traySeed, setTraySeed] = useState("default-week");
+  const [trayRound, setTrayRound] = useState(1);
+  const [trayHistory, setTrayHistory] = useState<VietnameseTrayHistory>();
   const mealBudget = useMemo(
     () => estimateMealBudget(trayDiners, budgetPerPerson),
     [trayDiners, budgetPerPerson],
   );
+  const vietnameseTrayWeek = useMemo(() => {
+    return buildVietnameseTrayWeek(traySeed, trayHistory);
+  }, [trayHistory, traySeed]);
   const recipeMap = new Map(recipes.map((recipe) => [recipe.id, recipe]));
   const plannedCount = planner.filter((slot) => slot.recipeId !== null).length;
   const checkedCount = shoppingItems.filter((item) =>
@@ -65,6 +72,18 @@ export default function MealPlanner({
     group,
     items: shoppingItems.filter((item) => item.group === group),
   }));
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const savedHistory = window.localStorage.getItem("angihomnay-tray-history");
+        if (savedHistory) setTrayHistory(JSON.parse(savedHistory));
+      } catch {
+        setTrayHistory(undefined);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const copyShoppingList = async () => {
     if (!shoppingItems.length) {
@@ -87,6 +106,22 @@ export default function MealPlanner({
     } catch {
       onNotice("Trình duyệt chưa cho phép sao chép tự động.");
     }
+  };
+
+  const randomizeVietnameseTrayWeek = () => {
+    const nextHistory = summarizeVietnameseTrayHistory(vietnameseTrayWeek);
+    setTrayHistory(nextHistory);
+    try {
+      window.localStorage.setItem(
+        "angihomnay-tray-history",
+        JSON.stringify(nextHistory),
+      );
+    } catch {
+      // Local storage is optional; the menu can still rotate from a new seed.
+    }
+    setTrayRound((round) => round + 1);
+    setTraySeed(`week-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    onNotice("Đã đổi thực đơn tuần mới, ưu tiên không lặp món vừa dùng.");
   };
 
   return (
@@ -132,7 +167,8 @@ export default function MealPlanner({
             <h3>Thực đơn trưa - chiều theo ngân sách</h3>
             <p>
               Mỗi bữa có cơm, canh, món mặn, rau xào hoặc luộc. Định mức được
-              tính theo số người ăn và tiền chợ mỗi người.
+              tính theo số người ăn và tiền chợ mỗi người. Bấm đổi tuần để
+              tự động random mâm cơm mới, hạn chế trùng món với tuần trước.
             </p>
           </div>
           <div className="tray-inputs">
@@ -161,6 +197,9 @@ export default function MealPlanner({
                 <option value={70000}>70.000đ/người</option>
               </select>
             </label>
+            <button className="tray-random-button" onClick={randomizeVietnameseTrayWeek}>
+              Đổi thực đơn tuần
+            </button>
           </div>
         </div>
 
@@ -168,6 +207,7 @@ export default function MealPlanner({
           <span><b>{formatMoney(mealBudget.perMeal)}</b> / bữa</span>
           <span><b>{formatMoney(mealBudget.perDay)}</b> / ngày</span>
           <span><b>{formatMoney(mealBudget.perWeek)}</b> / tuần</span>
+          <span><b>#{trayRound}</b> phiên thực đơn</span>
           <p>{mealBudget.guidance}</p>
         </div>
 
