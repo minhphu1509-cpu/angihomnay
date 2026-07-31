@@ -1,10 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useMemo, useState } from "react";
 import { Recipe } from "./recipes";
 import {
   PlannerSlot,
   ShoppingItem,
+  buildVietnameseTrayWeek,
+  estimateMealBudget,
 } from "./planner";
 
 type MealPlannerProps = {
@@ -27,6 +30,9 @@ const formatAmount = (amount: number | string) =>
     ? amount.toLocaleString("vi-VN", { maximumFractionDigits: 1 })
     : amount;
 
+const formatMoney = (value: number) =>
+  `${Math.round(value).toLocaleString("vi-VN")}đ`;
+
 export default function MealPlanner({
   planner,
   recipes,
@@ -41,6 +47,13 @@ export default function MealPlanner({
   onOpenRecipe,
   onNotice,
 }: MealPlannerProps) {
+  const [trayDiners, setTrayDiners] = useState(4);
+  const [budgetPerPerson, setBudgetPerPerson] = useState(30000);
+  const vietnameseTrayWeek = useMemo(() => buildVietnameseTrayWeek(), []);
+  const mealBudget = useMemo(
+    () => estimateMealBudget(trayDiners, budgetPerPerson),
+    [trayDiners, budgetPerPerson],
+  );
   const recipeMap = new Map(recipes.map((recipe) => [recipe.id, recipe]));
   const plannedCount = planner.filter((slot) => slot.recipeId !== null).length;
   const checkedCount = shoppingItems.filter((item) =>
@@ -110,6 +123,77 @@ export default function MealPlanner({
         >
           Làm mới tuần
         </button>
+      </div>
+
+      <div className="tray-planner">
+        <div className="tray-controls">
+          <div>
+            <p className="section-kicker">Mâm cơm Việt</p>
+            <h3>Thực đơn trưa - chiều theo ngân sách</h3>
+            <p>
+              Mỗi bữa có cơm, canh, món mặn, rau xào hoặc luộc. Định mức được
+              tính theo số người ăn và tiền chợ mỗi người.
+            </p>
+          </div>
+          <div className="tray-inputs">
+            <label>
+              <span>Số người ăn</span>
+              <input
+                type="number"
+                min={1}
+                max={20}
+                value={trayDiners}
+                onChange={(event) =>
+                  setTrayDiners(Math.min(20, Math.max(1, Number(event.target.value) || 1)))
+                }
+              />
+            </label>
+            <label>
+              <span>Định mức/người/bữa</span>
+              <select
+                value={budgetPerPerson}
+                onChange={(event) => setBudgetPerPerson(Number(event.target.value))}
+              >
+                <option value={25000}>25.000đ/người</option>
+                <option value={30000}>30.000đ/người</option>
+                <option value={40000}>40.000đ/người</option>
+                <option value={50000}>50.000đ/người</option>
+                <option value={70000}>70.000đ/người</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div className="tray-budget">
+          <span><b>{formatMoney(mealBudget.perMeal)}</b> / bữa</span>
+          <span><b>{formatMoney(mealBudget.perDay)}</b> / ngày</span>
+          <span><b>{formatMoney(mealBudget.perWeek)}</b> / tuần</span>
+          <p>{mealBudget.guidance}</p>
+        </div>
+
+        <div className="tray-week">
+          {vietnameseTrayWeek.map((day) => (
+            <article key={day.day} className="tray-day">
+              <h4>{day.day}</h4>
+              {[day.lunch, day.dinner].map((meal) => (
+                <section key={meal.session} className="tray-meal">
+                  <div className="tray-meal-head">
+                    <span>{meal.session}</span>
+                    <strong>{formatMoney(mealBudget.perMeal)}</strong>
+                  </div>
+                  <ul>
+                    <li><b>Cơm</b><span>{meal.rice}</span></li>
+                    <li><b>Canh</b><span>{meal.soup}</span></li>
+                    <li><b>Mặn</b><span>{meal.savory}</span></li>
+                    <li><b>Xào</b><span>{meal.vegetable}</span></li>
+                    {meal.boiled && <li><b>Luộc/kèm</b><span>{meal.boiled}</span></li>}
+                  </ul>
+                  <p>{meal.note}</p>
+                </section>
+              ))}
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="planner-days">
