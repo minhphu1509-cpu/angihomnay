@@ -12,9 +12,13 @@ Webapp hướng dẫn nấu 300 món ăn chọn lọc, thiết kế theo tinh th
 - Đánh dấu nguyên liệu đã có/đã mua, sao chép và in danh sách đi chợ
 - Kế hoạch tuần và trạng thái mua sắm được lưu cục bộ trên thiết bị
 - Thêm món trực tiếp vào một ngày trong tuần từ cửa sổ công thức
-- Trạng thái biên tập minh bạch: đã biên tập chi tiết, đã chuẩn hóa theo suất hoặc đang rà soát
+- Trạng thái biên tập và kiểm chứng tách biệt, có người/ngày rà soát và ghi chú phạm vi kiểm chứng
+- CMS tại `/quan-tri` để sửa toàn bộ trường của 300 món: nguyên liệu, bước nấu, ảnh, an toàn, bảo quản và nguồn
+- CMS có lưu nháp, xuất bản trên thiết bị, khôi phục dữ liệu gốc và nhập/xuất JSON
+- Thư viện ảnh phân biệt rõ ảnh đúng món với minh họa theo nhóm món
 - Lộ trình khởi nghiệp quán cơm và máy tính doanh thu, giá vốn, lợi nhuận, điểm hòa vốn
-- Tìm kiếm tức thời theo tên món, vùng miền và thẻ nội dung
+- Tìm kiếm toàn văn theo tên, mô tả, vùng, nguyên liệu và các bước nấu
+- Bộ lọc nâng cao theo khu vực, độ khó, thời gian, trạng thái kiểm chứng, trạng thái ảnh và dị ứng
 - Lọc theo 10 khu vực ẩm thực
 - Gợi ý món ngẫu nhiên cho hôm nay
 - Lưu món yêu thích trên thiết bị
@@ -35,6 +39,18 @@ npm run dev
 
 Mở `http://localhost:3000`.
 
+CMS biên tập mở tại `http://localhost:3000/quan-tri`.
+
+## Quy trình CMS
+
+1. Tìm món theo tên, vùng, nguyên liệu hoặc trạng thái kiểm chứng.
+2. Sửa hồ sơ và chọn **Lưu nháp**.
+3. Xử lý toàn bộ cảnh báo chất lượng rồi chọn **Xuất bản**.
+4. Mở trang công khai trên cùng trình duyệt để xem dữ liệu đã xuất bản.
+5. Dùng **Xuất dữ liệu** để tạo tệp JSON bàn giao hoặc nhập vào hệ quản trị trung tâm.
+
+CMS hiện dùng `localStorage`, phù hợp cho biên tập thử nghiệm và bàn giao dữ liệu mà không cần cấu hình máy chủ. Để nhiều biên tập viên cùng làm việc và xuất bản cho mọi người dùng, giai đoạn tiếp theo cần kết nối xác thực và cơ sở dữ liệu trung tâm.
+
 ## Triển khai Vercel
 
 1. Đưa mã nguồn lên GitHub.
@@ -53,4 +69,4 @@ Tệp `vercel.json` đã cấu hình Vercel dùng quy trình build Next.js tiêu
 
 ## Công nghệ
 
-Next.js 16, React 19, TypeScript và CSS thuần. Bản hiện tại không cần cơ sở dữ liệu hay biến môi trường; dữ liệu cá nhân của kế hoạch tuần được lưu bằng `localStorage`.
+Next.js 16, React 19, TypeScript và CSS thuần. Bản hiện tại không cần cơ sở dữ liệu hay biến môi trường; kế hoạch tuần, danh sách mua sắm và dữ liệu CMS thử nghiệm được lưu bằng `localStorage`.

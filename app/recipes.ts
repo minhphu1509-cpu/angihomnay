@@ -14,6 +14,11 @@ export type RecipeStep = {
   temperature?: string;
 };
 
+export type VerificationStatus =
+  | "Đã kiểm chứng nội bộ"
+  | "Đã chuẩn hóa vận hành"
+  | "Chờ kiểm chứng";
+
 export type Recipe = {
   id: number;
   name: string;
@@ -44,6 +49,10 @@ export type Recipe = {
   editorialStatus: "Đã biên tập chi tiết" | "Đã chuẩn hóa theo suất" | "Đang rà soát";
   contentVersion: string;
   imageStatus: "Ảnh đúng món" | "Minh họa theo nhóm món";
+  verificationStatus: VerificationStatus;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  verificationNotes: string;
 };
 
 export type RegionKey =
@@ -956,6 +965,12 @@ const createRecipe = (
     editorialStatus: signature ? "Đã biên tập chi tiết" : "Đang rà soát",
     contentVersion: "2026.07",
     imageStatus: exactRecipeImages[baseName] ? "Ảnh đúng món" : "Minh họa theo nhóm món",
+    verificationStatus: signature ? "Đã kiểm chứng nội bộ" : "Chờ kiểm chứng",
+    reviewedAt: signature ? "2026-07-31" : null,
+    reviewedBy: signature ? "Ban biên tập Ăn gì hôm nay" : null,
+    verificationNotes: signature
+      ? "Đã rà soát định lượng, trình tự thao tác và dấu hiệu món đạt trong bộ công thức gốc."
+      : "Hồ sơ đã đủ trường dữ liệu nhưng cần tiếp tục đối chiếu định lượng và kỹ thuật đặc trưng trước khi gắn nhãn kiểm chứng.",
   };
 };
 
@@ -1194,6 +1209,10 @@ const createCanteenRecipe = (dish: CanteenDishSeed, index: number): Recipe => {
     editorialStatus: "Đã chuẩn hóa theo suất",
     contentVersion: "2026.07",
     imageStatus: "Minh họa theo nhóm món",
+    verificationStatus: "Đã chuẩn hóa vận hành",
+    reviewedAt: "2026-07-31",
+    reviewedBy: "Ban biên tập Ăn gì hôm nay",
+    verificationNotes: "Đã chuẩn hóa định lượng mẫu 4 suất, quy trình theo mẻ và lưu ý chia suất; cần nấu thử tại bếp thực tế trước khi kinh doanh.",
   };
 };
 
@@ -1244,6 +1263,8 @@ const invalidRecipes = recipes.filter(
     recipe.steps.length < 6 ||
     !recipe.editorialStatus ||
     !recipe.contentVersion ||
+    !recipe.verificationStatus ||
+    !recipe.verificationNotes ||
     recipe.ingredients.some((item) => /nguyên liệu chính cho|vừa đủ/i.test(item.item)),
 );
 
@@ -1259,6 +1280,29 @@ if (
     `Dữ liệu không đạt chuẩn: ${recipes.length} món, ${duplicateNames.length} tên trùng, ${duplicateContent.length} công thức trùng, ${mismatchedImages.length} ảnh sai, ${invalidRecipes.length} mục thiếu chi tiết.`,
   );
 }
+
+export const recipeQualityReport = {
+  total: recipes.length,
+  vietnamese: recipes.filter((recipe) => recipe.continent === "Việt Nam").length,
+  world: recipes.filter((recipe) => recipe.continent !== "Việt Nam").length,
+  exactImages: recipes.filter((recipe) => recipe.imageStatus === "Ảnh đúng món").length,
+  illustratedImages: recipes.filter(
+    (recipe) => recipe.imageStatus === "Minh họa theo nhóm món",
+  ).length,
+  verified: recipes.filter(
+    (recipe) => recipe.verificationStatus === "Đã kiểm chứng nội bộ",
+  ).length,
+  standardized: recipes.filter(
+    (recipe) => recipe.verificationStatus === "Đã chuẩn hóa vận hành",
+  ).length,
+  pending: recipes.filter(
+    (recipe) => recipe.verificationStatus === "Chờ kiểm chứng",
+  ).length,
+  duplicateNames: duplicateNames.length,
+  duplicateContent: duplicateContent.length,
+  mismatchedImages: mismatchedImages.length,
+  invalidRecipes: invalidRecipes.length,
+};
 
 export const regions: Array<{
   key: "Tất cả" | RegionKey;

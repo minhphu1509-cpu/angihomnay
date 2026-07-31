@@ -829,6 +829,14 @@ svg {
   padding: 22px;
 }
 
+.quality-badges {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 2px 0 9px;
+}
+
 .quality-badge {
   align-items: center;
   color: var(--green);
@@ -837,8 +845,19 @@ svg {
   font-weight: 850;
   gap: 6px;
   letter-spacing: 0.08em;
-  margin: 2px 0 9px;
+  margin: 0;
   text-transform: uppercase;
+}
+
+.quality-badge.verification {
+  color: #5d675f;
+  font-size: 7px;
+}
+
+.quality-badge.verification::before {
+  background: #6f857b;
+  height: 5px;
+  width: 5px;
 }
 
 .quality-badge::before {
@@ -1125,6 +1144,127 @@ svg {
   outline: none;
   padding-left: 9px;
   width: 100%;
+}
+
+.advanced-toggle {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50px;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 800;
+  gap: 8px;
+  padding: 11px 14px;
+  white-space: nowrap;
+}
+
+.advanced-toggle:hover,
+.advanced-toggle.active {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--white);
+}
+
+.advanced-toggle span {
+  align-items: center;
+  background: var(--white);
+  border-radius: 50%;
+  color: var(--red);
+  display: flex;
+  font-size: 8px;
+  height: 18px;
+  justify-content: center;
+  width: 18px;
+}
+
+.advanced-search-panel {
+  background: var(--green);
+  color: var(--white);
+  margin: -20px 0 36px;
+  padding: clamp(22px, 3vw, 34px);
+}
+
+.advanced-search-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.advanced-search-heading strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.advanced-search-heading p {
+  color: #b8c9c2;
+  font-size: 10px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+}
+
+.advanced-search-heading button {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #829a90;
+  color: #d4dfda;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 6px 0;
+}
+
+.advanced-filter-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-top: 24px;
+}
+
+.advanced-filter-grid label > span {
+  color: #aabeb6;
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin: 0 0 6px 3px;
+  text-transform: uppercase;
+}
+
+.advanced-filter-grid select {
+  background: #214f44;
+  border: 1px solid #51766c;
+  border-radius: 8px;
+  color: var(--white);
+  font-size: 10px;
+  outline: none;
+  padding: 11px 9px;
+  width: 100%;
+}
+
+.advanced-filter-grid select:focus {
+  border-color: #e0ae73;
+}
+
+.advanced-result-line {
+  align-items: center;
+  border-top: 1px solid #42695f;
+  display: flex;
+  font-size: 9px;
+  font-weight: 800;
+  justify-content: space-between;
+  letter-spacing: 0.05em;
+  margin-top: 22px;
+  padding-top: 16px;
+  text-transform: uppercase;
+}
+
+.advanced-result-line a {
+  color: #e8bd88;
+  text-decoration: none;
 }
 
 .library-grid {
@@ -1461,10 +1601,34 @@ footer {
   color: #765622;
 }
 
+.editorial-meta > span.verified {
+  background: #dcebe4;
+  color: #215c48;
+}
+
 .editorial-meta small {
   color: var(--muted);
   font-size: 9px;
   font-weight: 700;
+}
+
+.verification-note {
+  border-left: 2px solid var(--line);
+  color: var(--muted);
+  font-size: 10px !important;
+  line-height: 1.55 !important;
+  margin: 12px 0 0 !important;
+  padding-left: 12px;
+}
+
+.verification-note small {
+  color: var(--green);
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-top: 5px;
+  text-transform: uppercase;
 }
 
 .variation-label {
@@ -2751,6 +2915,10 @@ footer {
   .planner-days {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+
+  .advanced-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
@@ -2840,6 +3008,11 @@ footer {
     width: 100%;
   }
 
+  .advanced-toggle {
+    justify-content: center;
+    width: 100%;
+  }
+
   .canteen-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2890,6 +3063,24 @@ footer {
 }
 
 @media (max-width: 620px) {
+  .advanced-search-heading {
+    display: block;
+  }
+
+  .advanced-search-heading button {
+    margin-top: 12px;
+  }
+
+  .advanced-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .advanced-result-line {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
   .site-header {
     padding: 0 18px;
   }

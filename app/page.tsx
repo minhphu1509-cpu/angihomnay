@@ -1,17 +1,23 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  canteenRecipes,
   featuredRecipeIds,
   Recipe,
   recipes,
   RegionKey,
   regions,
+  VerificationStatus,
 } from "./recipes";
 import { officialBusinessLinks, startupSteps, weeklyMenus } from "./guides";
 import MealPlanner from "./meal-planner";
+import {
+  CMS_PUBLISHED_KEY,
+  mergeRecipeRecords,
+  parseRecipeRecordMap,
+} from "./cms-storage";
 import {
   buildShoppingList,
   createEmptyPlanner,
@@ -21,10 +27,9 @@ import {
 } from "./planner";
 
 type RegionFilter = "Tất cả" | RegionKey;
-
-const featured = featuredRecipeIds
-  .map((id) => recipes.find((recipe) => recipe.id === id))
-  .filter(Boolean) as Recipe[];
+type DifficultyFilter = "Tất cả" | Recipe["difficulty"];
+type VerificationFilter = "Tất cả" | VerificationStatus;
+type ImageFilter = "Tất cả" | Recipe["imageStatus"];
 
 const SearchIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -124,9 +129,14 @@ function RecipeCard({
             <HeartIcon filled={favorite} />
           </button>
         </div>
-        <span className={`quality-badge ${recipe.editorialStatus === "Đang rà soát" ? "reviewing" : ""}`}>
-          {recipe.editorialStatus}
-        </span>
+        <div className="quality-badges">
+          <span className={`quality-badge ${recipe.editorialStatus === "Đang rà soát" ? "reviewing" : ""}`}>
+            {recipe.editorialStatus}
+          </span>
+          <span className={`quality-badge verification ${recipe.verificationStatus === "Chờ kiểm chứng" ? "reviewing" : ""}`}>
+            {recipe.verificationStatus}
+          </span>
+        </div>
         <button className="recipe-title-button" onClick={onOpen}>
           <h3>{recipe.name}</h3>
         </button>
@@ -215,9 +225,21 @@ function RecipeModal({
                 <span className={recipe.editorialStatus === "Đang rà soát" ? "reviewing" : ""}>
                   {recipe.editorialStatus}
                 </span>
+                <span className={recipe.verificationStatus === "Chờ kiểm chứng" ? "reviewing" : "verified"}>
+                  {recipe.verificationStatus}
+                </span>
                 <small>Phiên bản {recipe.contentVersion}</small>
                 <small>{recipe.imageStatus}</small>
               </div>
+              <p className="verification-note">
+                {recipe.verificationNotes}
+                {recipe.reviewedAt && (
+                  <small>
+                    Rà soát {recipe.reviewedAt}
+                    {recipe.reviewedBy ? ` · ${recipe.reviewedBy}` : ""}
+                  </small>
+                )}
+              </p>
             </div>
             <div className="modal-intro-actions">
               <button className={`save-recipe ${favorite ? "active" : ""}`} onClick={onFavorite}>
@@ -362,41 +384,25 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [activeRegion, setActiveRegion] = useState<RegionFilter>("Tất cả");
   const [visibleCount, setVisibleCount] = useState(12);
-  const [favorites, setFavorites] = useState<number[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const stored = window.localStorage.getItem("an-gi-hom-nay-favorites");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [publishedRecipes, setPublishedRecipes] = useState<Recipe[]>(recipes);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [difficultyFilter, setDifficultyFilter] =
+    useState<DifficultyFilter>("Tất cả");
+  const [verificationFilter, setVerificationFilter] =
+    useState<VerificationFilter>("Tất cả");
+  const [imageFilter, setImageFilter] = useState<ImageFilter>("Tất cả");
+  const [continentFilter, setContinentFilter] = useState("Tất cả");
+  const [allergenFilter, setAllergenFilter] = useState("Tất cả");
+  const [maxTime, setMaxTime] = useState(0);
+  const [favorites, setFavorites] = useState<number[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeWeek, setActiveWeek] = useState(0);
   const [notice, setNotice] = useState("");
-  const [planner, setPlanner] = useState<PlannerSlot[]>(() => {
-    if (typeof window === "undefined") return createEmptyPlanner();
-    try {
-      const stored = window.localStorage.getItem("an-gi-hom-nay-planner");
-      const parsed = stored ? JSON.parse(stored) : null;
-      return Array.isArray(parsed) && parsed.length === 7
-        ? parsed
-        : createEmptyPlanner();
-    } catch {
-      return createEmptyPlanner();
-    }
-  });
-  const [checkedShoppingItems, setCheckedShoppingItems] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const stored = window.localStorage.getItem("an-gi-hom-nay-shopping");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [planner, setPlanner] = useState<PlannerSlot[]>(createEmptyPlanner);
+  const [checkedShoppingItems, setCheckedShoppingItems] = useState<string[]>([]);
+  const [storageReady, setStorageReady] = useState(false);
   const [businessInputs, setBusinessInputs] = useState({
     portionsPerDay: 80,
     pricePerPortion: 35000,
@@ -444,20 +450,124 @@ export default function Home() {
   }, [businessInputs]);
 
   const shoppingItems = useMemo(
-    () => buildShoppingList(planner, recipes),
-    [planner],
+    () => buildShoppingList(planner, publishedRecipes),
+    [planner, publishedRecipes],
+  );
+
+  const featured = useMemo(
+    () =>
+      featuredRecipeIds
+        .map((id) => publishedRecipes.find((recipe) => recipe.id === id))
+        .filter(Boolean) as Recipe[],
+    [publishedRecipes],
+  );
+
+  const currentCanteenRecipes = useMemo(
+    () => publishedRecipes.filter((recipe) => recipe.tags.includes("Cơm quán")),
+    [publishedRecipes],
+  );
+
+  const continentOptions = useMemo(
+    () => [
+      "Tất cả",
+      ...Array.from(
+        new Set(publishedRecipes.map((recipe) => recipe.continent)),
+      ),
+    ],
+    [publishedRecipes],
+  );
+
+  const allergenOptions = useMemo(
+    () => [
+      "Tất cả",
+      "Không có chất dị ứng phổ biến",
+      ...Array.from(
+        new Set(publishedRecipes.flatMap((recipe) => recipe.allergens)),
+      ).sort((a, b) => a.localeCompare(b, "vi")),
+    ],
+    [publishedRecipes],
   );
 
   useEffect(() => {
-    window.localStorage.setItem("an-gi-hom-nay-planner", JSON.stringify(planner));
-  }, [planner]);
+    const frame = window.requestAnimationFrame(() => {
+    const publishedRecords = parseRecipeRecordMap(
+      window.localStorage.getItem(CMS_PUBLISHED_KEY),
+    );
+    setPublishedRecipes(mergeRecipeRecords(recipes, publishedRecords));
+
+    try {
+      const storedFavorites = window.localStorage.getItem(
+        "an-gi-hom-nay-favorites",
+      );
+      const parsedFavorites = storedFavorites
+        ? JSON.parse(storedFavorites)
+        : [];
+      if (Array.isArray(parsedFavorites)) {
+        setFavorites(
+          parsedFavorites.filter(
+            (item): item is number => typeof item === "number",
+          ),
+        );
+      }
+    } catch {
+      setFavorites([]);
+    }
+
+    try {
+      const storedPlanner = window.localStorage.getItem(
+        "an-gi-hom-nay-planner",
+      );
+      const parsedPlanner = storedPlanner ? JSON.parse(storedPlanner) : null;
+      if (Array.isArray(parsedPlanner) && parsedPlanner.length === 7) {
+        setPlanner(parsedPlanner);
+      }
+    } catch {
+      setPlanner(createEmptyPlanner());
+    }
+
+    try {
+      const storedShopping = window.localStorage.getItem(
+        "an-gi-hom-nay-shopping",
+      );
+      const parsedShopping = storedShopping
+        ? JSON.parse(storedShopping)
+        : [];
+      if (Array.isArray(parsedShopping)) {
+        setCheckedShoppingItems(
+          parsedShopping.filter(
+            (item): item is string => typeof item === "string",
+          ),
+        );
+      }
+    } catch {
+      setCheckedShoppingItems([]);
+    }
+
+    setStorageReady(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
+    if (!storageReady) return;
+    window.localStorage.setItem(
+      "an-gi-hom-nay-favorites",
+      JSON.stringify(favorites),
+    );
+  }, [favorites, storageReady]);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    window.localStorage.setItem("an-gi-hom-nay-planner", JSON.stringify(planner));
+  }, [planner, storageReady]);
+
+  useEffect(() => {
+    if (!storageReady) return;
     window.localStorage.setItem(
       "an-gi-hom-nay-shopping",
       JSON.stringify(checkedShoppingItems),
     );
-  }, [checkedShoppingItems]);
+  }, [checkedShoppingItems, storageReady]);
 
   useEffect(() => {
     if (!notice) return;
@@ -480,11 +590,9 @@ export default function Home() {
 
   const toggleFavorite = (id: number) => {
     setFavorites((current) => {
-      const next = current.includes(id)
+      return current.includes(id)
         ? current.filter((item) => item !== id)
         : [...current, id];
-      window.localStorage.setItem("an-gi-hom-nay-favorites", JSON.stringify(next));
-      return next;
     });
   };
 
@@ -523,28 +631,97 @@ export default function Home() {
 
   const filteredRecipes = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("vi");
-    return recipes.filter((recipe) => {
+    return publishedRecipes.filter((recipe) => {
       const matchesRegion =
         activeRegion === "Tất cả" || recipe.region === activeRegion;
       const matchesFavorite = !showFavorites || favorites.includes(recipe.id);
       const matchesQuery =
         !normalizedQuery ||
-        `${recipe.name} ${recipe.region} ${recipe.origin} ${recipe.tags.join(" ")}`
+        [
+          recipe.name,
+          recipe.baseName,
+          recipe.description,
+          recipe.region,
+          recipe.origin,
+          recipe.continent,
+          recipe.tags.join(" "),
+          recipe.ingredients.map((item) => item.item).join(" "),
+          recipe.steps.map((item) => `${item.title} ${item.instruction}`).join(" "),
+        ]
+          .join(" ")
           .toLocaleLowerCase("vi")
           .includes(normalizedQuery);
-      return matchesRegion && matchesFavorite && matchesQuery;
+      const matchesDifficulty =
+        difficultyFilter === "Tất cả" ||
+        recipe.difficulty === difficultyFilter;
+      const matchesVerification =
+        verificationFilter === "Tất cả" ||
+        recipe.verificationStatus === verificationFilter;
+      const matchesImage =
+        imageFilter === "Tất cả" || recipe.imageStatus === imageFilter;
+      const matchesContinent =
+        continentFilter === "Tất cả" ||
+        recipe.continent === continentFilter;
+      const matchesTime = maxTime === 0 || recipe.time <= maxTime;
+      const matchesAllergen =
+        allergenFilter === "Tất cả" ||
+        (allergenFilter === "Không có chất dị ứng phổ biến"
+          ? recipe.allergens.length === 0
+          : recipe.allergens.includes(allergenFilter));
+      return (
+        matchesRegion &&
+        matchesFavorite &&
+        matchesQuery &&
+        matchesDifficulty &&
+        matchesVerification &&
+        matchesImage &&
+        matchesContinent &&
+        matchesTime &&
+        matchesAllergen
+      );
     });
-  }, [activeRegion, favorites, query, showFavorites]);
+  }, [
+    activeRegion,
+    allergenFilter,
+    continentFilter,
+    difficultyFilter,
+    favorites,
+    imageFilter,
+    maxTime,
+    publishedRecipes,
+    query,
+    showFavorites,
+    verificationFilter,
+  ]);
 
   const explore = () => {
     document.getElementById("kho-mon")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const suggestRecipe = () => {
-    const pool = filteredRecipes.length ? filteredRecipes : recipes;
+    const pool = filteredRecipes.length ? filteredRecipes : publishedRecipes;
     const recipe = pool[Math.floor(Math.random() * pool.length)];
     setSelectedRecipe(recipe);
   };
+
+  const resetAdvancedFilters = () => {
+    setDifficultyFilter("Tất cả");
+    setVerificationFilter("Tất cả");
+    setImageFilter("Tất cả");
+    setContinentFilter("Tất cả");
+    setAllergenFilter("Tất cả");
+    setMaxTime(0);
+    setVisibleCount(12);
+  };
+
+  const advancedFilterCount = [
+    difficultyFilter !== "Tất cả",
+    verificationFilter !== "Tất cả",
+    imageFilter !== "Tất cả",
+    continentFilter !== "Tất cả",
+    allergenFilter !== "Tất cả",
+    maxTime > 0,
+  ].filter(Boolean).length;
 
   const chooseRegion = (region: RegionFilter) => {
     setActiveRegion(region);
@@ -577,6 +754,7 @@ export default function Home() {
           <a href="#ke-hoach-tuan" onClick={() => setMenuOpen(false)}>Kế hoạch tuần</a>
           <a href="#mo-quan" onClick={() => setMenuOpen(false)}>Mở quán</a>
           <a href="#kho-mon" onClick={() => setMenuOpen(false)}>300 món chọn lọc</a>
+          <Link href="/quan-tri" onClick={() => setMenuOpen(false)}>CMS</Link>
         </nav>
         <div className="header-actions">
           <button
@@ -713,7 +891,7 @@ export default function Home() {
           <span><b>04</b> Lưu ý bảo quản</span>
         </div>
         <div className="canteen-grid">
-          {canteenRecipes.slice(0, 6).map((recipe) => (
+          {currentCanteenRecipes.slice(0, 6).map((recipe) => (
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
@@ -727,13 +905,13 @@ export default function Home() {
 
       <MealPlanner
         planner={planner}
-        recipes={recipes}
+        recipes={publishedRecipes}
         shoppingItems={shoppingItems}
         checkedShoppingItems={checkedShoppingItems}
         onSetRecipe={setPlannerRecipe}
         onChangeServings={changePlannerServings}
         onLoadSample={() => {
-          setPlanner(createSamplePlanner(recipes));
+          setPlanner(createSamplePlanner(publishedRecipes));
           setCheckedShoppingItems([]);
           setNotice("Đã nạp thực đơn mẫu cho 7 ngày.");
         }}
@@ -983,7 +1161,118 @@ export default function Home() {
               placeholder="Tìm trong 300 món..."
             />
           </label>
+          <button
+            className={`advanced-toggle ${advancedOpen ? "active" : ""}`}
+            onClick={() => setAdvancedOpen((current) => !current)}
+            aria-expanded={advancedOpen}
+            aria-controls="advanced-search-panel"
+          >
+            Bộ lọc nâng cao
+            {advancedFilterCount > 0 && <span>{advancedFilterCount}</span>}
+          </button>
         </div>
+
+        {advancedOpen && (
+          <div className="advanced-search-panel" id="advanced-search-panel">
+            <div className="advanced-search-heading">
+              <div>
+                <strong>Tìm đúng món theo nhu cầu</strong>
+                <p>Tìm cả trong tên, mô tả, nguyên liệu và các bước nấu.</p>
+              </div>
+              <button onClick={resetAdvancedFilters}>Đặt lại bộ lọc</button>
+            </div>
+            <div className="advanced-filter-grid">
+              <label>
+                <span>Khu vực</span>
+                <select
+                  value={continentFilter}
+                  onChange={(event) => {
+                    setContinentFilter(event.target.value);
+                    setVisibleCount(12);
+                  }}
+                >
+                  {continentOptions.map((option) => <option key={option}>{option}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Độ khó</span>
+                <select
+                  value={difficultyFilter}
+                  onChange={(event) => {
+                    setDifficultyFilter(event.target.value as DifficultyFilter);
+                    setVisibleCount(12);
+                  }}
+                >
+                  <option>Tất cả</option>
+                  <option>Dễ</option>
+                  <option>Vừa</option>
+                  <option>Cầu kỳ</option>
+                </select>
+              </label>
+              <label>
+                <span>Thời gian tối đa</span>
+                <select
+                  value={maxTime}
+                  onChange={(event) => {
+                    setMaxTime(Number(event.target.value));
+                    setVisibleCount(12);
+                  }}
+                >
+                  <option value={0}>Không giới hạn</option>
+                  <option value={30}>Tối đa 30 phút</option>
+                  <option value={60}>Tối đa 60 phút</option>
+                  <option value={90}>Tối đa 90 phút</option>
+                  <option value={180}>Tối đa 180 phút</option>
+                </select>
+              </label>
+              <label>
+                <span>Kiểm chứng</span>
+                <select
+                  value={verificationFilter}
+                  onChange={(event) => {
+                    setVerificationFilter(event.target.value as VerificationFilter);
+                    setVisibleCount(12);
+                  }}
+                >
+                  <option>Tất cả</option>
+                  <option>Đã kiểm chứng nội bộ</option>
+                  <option>Đã chuẩn hóa vận hành</option>
+                  <option>Chờ kiểm chứng</option>
+                </select>
+              </label>
+              <label>
+                <span>Hình ảnh</span>
+                <select
+                  value={imageFilter}
+                  onChange={(event) => {
+                    setImageFilter(event.target.value as ImageFilter);
+                    setVisibleCount(12);
+                  }}
+                >
+                  <option>Tất cả</option>
+                  <option>Ảnh đúng món</option>
+                  <option>Minh họa theo nhóm món</option>
+                </select>
+              </label>
+              <label>
+                <span>Dị ứng cần lưu ý</span>
+                <select
+                  value={allergenFilter}
+                  onChange={(event) => {
+                    setAllergenFilter(event.target.value);
+                    setVisibleCount(12);
+                  }}
+                >
+                  {allergenOptions.map((option) => <option key={option}>{option}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="advanced-result-line">
+              <span>{filteredRecipes.length} món phù hợp</span>
+              <Link href="/quan-tri">Mở CMS để sửa hồ sơ →</Link>
+            </div>
+          </div>
+        )}
 
         {filteredRecipes.length > 0 ? (
           <>
@@ -1013,7 +1302,12 @@ export default function Home() {
             <span>🍲</span>
             <h3>Chưa tìm thấy món phù hợp</h3>
             <p>Thử một từ khóa khác hoặc xem toàn bộ kho công thức.</p>
-            <button onClick={() => { setQuery(""); setActiveRegion("Tất cả"); setShowFavorites(false); }}>
+            <button onClick={() => {
+              setQuery("");
+              setActiveRegion("Tất cả");
+              setShowFavorites(false);
+              resetAdvancedFilters();
+            }}>
               Xem tất cả món
             </button>
           </div>
@@ -1049,6 +1343,7 @@ export default function Home() {
           <a href="#com-quan">Cơm quán</a>
           <a href="#ke-hoach-tuan">Kế hoạch tuần</a>
           <a href="#mo-quan">Mở quán</a>
+          <Link href="/quan-tri">CMS công thức</Link>
         </div>
         <p className="copyright">© 2026 Ăn gì hôm nay. Nấu bằng niềm vui.</p>
       </footer>
