@@ -2193,6 +2193,22 @@ footer {
   width: 100%;
 }
 
+.tray-random-button {
+  background: var(--green);
+  border: 0;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 850;
+  grid-column: 1 / -1;
+  min-height: 42px;
+  padding: 0 16px;
+}
+
+.tray-random-button:hover {
+  background: #123f34;
+}
+
 .tray-budget {
   align-items: center;
   border-bottom: 1px solid var(--line);
