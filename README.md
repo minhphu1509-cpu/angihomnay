@@ -1,19 +1,22 @@
 # Ăn gì hôm nay
 
-Webapp hướng dẫn nấu 1.000 món ăn Việt Nam và thế giới, thiết kế theo tinh thần **Vietnamese Heritage Luxury**.
+Webapp hướng dẫn nấu 1.050 món ăn Việt Nam và thế giới, thiết kế theo tinh thần **Vietnamese Heritage Luxury**.
 
 ## Tính năng
 
-- Kho dữ liệu đúng 1.000 công thức thuộc 3 miền Việt Nam và 6 châu lục
+- Kho dữ liệu đúng 1.050 công thức thuộc 3 miền Việt Nam và 6 châu lục
+- Bộ sưu tập riêng 50 món cơm bình dân và cơm văn phòng theo định lượng suất
+- 4 thực đơn gia đình theo tuần, mỗi tuần đủ 7 ngày
+- Lộ trình khởi nghiệp quán cơm và máy tính doanh thu, giá vốn, lợi nhuận, điểm hòa vốn
 - Tìm kiếm tức thời theo tên món, vùng miền và thẻ nội dung
 - Lọc theo 10 khu vực ẩm thực
 - Gợi ý món ngẫu nhiên cho hôm nay
 - Lưu món yêu thích trên thiết bị
-- Hướng dẫn nguyên liệu và 5 bước nấu có thể đánh dấu hoàn thành
+- Hướng dẫn nguyên liệu và tối thiểu 6 bước nấu có thể đánh dấu hoàn thành
 - Định lượng tự động theo 1–12 khẩu phần
 - Thời gian sơ chế, nấu, nghỉ; nhiệt độ và dấu hiệu chín
 - Cảnh báo dị ứng, an toàn thực phẩm, bảo quản và thay thế nguyên liệu
-- Kiểm tra tự động: đủ đúng 1.000 công thức, mỗi công thức có ít nhất 8 nguyên liệu và 6 bước
+- Kiểm tra tự động: đủ đúng 1.050 công thức, gồm đúng 50 món cơm quán; mỗi công thức có ít nhất 8 nguyên liệu và 6 bước
 - Giao diện responsive cho máy tính, máy tính bảng và điện thoại
 - Hỗ trợ bàn phím, focus state và chế độ giảm chuyển động
 

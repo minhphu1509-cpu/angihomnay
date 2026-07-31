@@ -8,9 +8,9 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Ăn gì hôm nay — 1.000 công thức Việt Nam & thế giới",
+  title: "Ăn gì hôm nay — 1.050 công thức Việt Nam & thế giới",
   description:
-    "Khám phá 1.000 công thức món ăn Việt Nam theo ba miền và tinh hoa ẩm thực thế giới. Hướng dẫn rõ ràng, dễ nấu mỗi ngày.",
+    "Khám phá 1.050 công thức Việt Nam và thế giới, 50 món cơm quán, thực đơn gia đình theo tuần và bộ công cụ khởi nghiệp quán cơm.",
   other: {
     "codex-preview": "development",
   },

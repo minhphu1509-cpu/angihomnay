@@ -896,7 +896,7 @@ const createRecipe = (
   };
 };
 
-export const recipes: Recipe[] = regionSeeds.flatMap((seed, regionIndex) =>
+const coreRecipes: Recipe[] = regionSeeds.flatMap((seed, regionIndex) =>
   seed.names.flatMap((baseName, nameIndex) => {
     const family = signatureProfiles[baseName]?.family ?? inferFamily(baseName);
     return variantSetFor(family, baseName).map((variation, variationIndex) =>
@@ -905,6 +905,176 @@ export const recipes: Recipe[] = regionSeeds.flatMap((seed, regionIndex) =>
   }),
 );
 
+type CanteenMethod = "Kho" | "Rim" | "Xào" | "Chiên" | "Nướng" | "Sốt" | "Hấp" | "Luộc" | "Cà ri";
+
+type CanteenDishSeed = {
+  name: string;
+  region: Extract<RegionKey, "Miền Bắc" | "Miền Trung" | "Miền Nam">;
+  category: string;
+  method: CanteenMethod;
+  main: string;
+  amount?: number;
+};
+
+const canteenDishSeeds: CanteenDishSeed[] = [
+  { name: "Cơm sườn nướng", region: "Miền Nam", category: "Thịt heo", method: "Nướng", main: "sườn cốt lết" },
+  { name: "Cơm gà kho gừng", region: "Miền Bắc", category: "Thịt gà", method: "Kho", main: "đùi gà chặt miếng" },
+  { name: "Cơm thịt kho trứng", region: "Miền Nam", category: "Thịt heo", method: "Kho", main: "thịt ba chỉ và trứng", amount: 700 },
+  { name: "Cơm cá basa kho tộ", region: "Miền Nam", category: "Cá", method: "Kho", main: "cá basa cắt khoanh" },
+  { name: "Cơm cá thu sốt cà", region: "Miền Trung", category: "Cá", method: "Sốt", main: "cá thu cắt lát" },
+  { name: "Cơm bò xào hành cần", region: "Miền Bắc", category: "Thịt bò", method: "Xào", main: "thịt bò thái mỏng" },
+  { name: "Cơm gà chiên nước mắm", region: "Miền Nam", category: "Thịt gà", method: "Chiên", main: "đùi gà rút xương" },
+  { name: "Cơm sườn ram mặn", region: "Miền Trung", category: "Thịt heo", method: "Rim", main: "sườn non" },
+  { name: "Cơm thịt rang cháy cạnh", region: "Miền Bắc", category: "Thịt heo", method: "Rim", main: "thịt ba chỉ thái mỏng" },
+  { name: "Cơm cá nục kho cà", region: "Miền Trung", category: "Cá", method: "Kho", main: "cá nục làm sạch" },
+  { name: "Cơm gà xào sả ớt", region: "Miền Trung", category: "Thịt gà", method: "Xào", main: "thịt gà cắt miếng" },
+  { name: "Cơm thịt luộc mắm nêm", region: "Miền Trung", category: "Thịt heo", method: "Luộc", main: "thịt ba chỉ nguyên miếng" },
+  { name: "Cơm đậu hũ sốt cà", region: "Miền Bắc", category: "Món chay", method: "Sốt", main: "đậu hũ cắt miếng" },
+  { name: "Cơm trứng chiên thịt băm", region: "Miền Bắc", category: "Trứng", method: "Chiên", main: "trứng và thịt heo băm", amount: 550 },
+  { name: "Cơm chả trứng hấp", region: "Miền Nam", category: "Trứng", method: "Hấp", main: "trứng, thịt băm và miến", amount: 600 },
+  { name: "Cơm thịt viên sốt cà", region: "Miền Bắc", category: "Thịt heo", method: "Sốt", main: "thịt heo xay" },
+  { name: "Cơm cá rô phi chiên sả", region: "Miền Trung", category: "Cá", method: "Chiên", main: "cá rô phi phi lê" },
+  { name: "Cơm mực xào chua ngọt", region: "Miền Nam", category: "Hải sản", method: "Xào", main: "mực tươi làm sạch" },
+  { name: "Cơm tôm rim mặn ngọt", region: "Miền Nam", category: "Hải sản", method: "Rim", main: "tôm tươi bỏ chỉ lưng" },
+  { name: "Cơm bò lúc lắc", region: "Miền Nam", category: "Thịt bò", method: "Xào", main: "thịt bò cắt khối" },
+  { name: "Cơm gà rô ti", region: "Miền Nam", category: "Thịt gà", method: "Rim", main: "đùi gà" },
+  { name: "Cơm sườn xào chua ngọt", region: "Miền Bắc", category: "Thịt heo", method: "Xào", main: "sườn non chặt miếng" },
+  { name: "Cơm heo quay kho cải chua", region: "Miền Nam", category: "Thịt heo", method: "Kho", main: "heo quay và cải chua", amount: 700 },
+  { name: "Cơm cá kèo kho rau răm", region: "Miền Nam", category: "Cá", method: "Kho", main: "cá kèo làm sạch" },
+  { name: "Cơm lươn xào sả ớt", region: "Miền Trung", category: "Cá", method: "Xào", main: "lươn làm sạch" },
+  { name: "Cơm cá lóc nấu canh chua", region: "Miền Nam", category: "Cá", method: "Sốt", main: "cá lóc cắt khoanh" },
+  { name: "Cơm cá bống kho tiêu", region: "Miền Trung", category: "Cá", method: "Kho", main: "cá bống làm sạch" },
+  { name: "Cơm thịt kho mắm ruốc", region: "Miền Trung", category: "Thịt heo", method: "Kho", main: "thịt ba chỉ cắt nhỏ" },
+  { name: "Cơm gà nướng mật ong", region: "Miền Bắc", category: "Thịt gà", method: "Nướng", main: "đùi gà rút xương" },
+  { name: "Cơm gà xé trộn rau răm", region: "Miền Trung", category: "Thịt gà", method: "Luộc", main: "ức và đùi gà" },
+  { name: "Cơm chả cá sốt cà", region: "Miền Trung", category: "Cá", method: "Sốt", main: "chả cá miếng" },
+  { name: "Cơm cá diêu hồng chiên", region: "Miền Nam", category: "Cá", method: "Chiên", main: "cá diêu hồng làm sạch" },
+  { name: "Cơm thịt ba chỉ nướng", region: "Miền Bắc", category: "Thịt heo", method: "Nướng", main: "thịt ba chỉ thái bản" },
+  { name: "Cơm thịt băm xào đậu que", region: "Miền Bắc", category: "Thịt heo", method: "Xào", main: "thịt heo băm và đậu que", amount: 650 },
+  { name: "Cơm gan heo xào hành", region: "Miền Bắc", category: "Thịt heo", method: "Xào", main: "gan heo thái lát" },
+  { name: "Cơm trứng kho thịt", region: "Miền Nam", category: "Trứng", method: "Kho", main: "trứng và thịt nạc vai", amount: 650 },
+  { name: "Cơm đậu hũ kho nấm", region: "Miền Nam", category: "Món chay", method: "Kho", main: "đậu hũ và nấm", amount: 600 },
+  { name: "Cơm nấm kho tiêu", region: "Miền Nam", category: "Món chay", method: "Kho", main: "nấm đùi gà và nấm rơm" },
+  { name: "Cơm cà ri gà", region: "Miền Nam", category: "Thịt gà", method: "Cà ri", main: "thịt gà chặt miếng" },
+  { name: "Cơm bò kho", region: "Miền Nam", category: "Thịt bò", method: "Kho", main: "nạm bò cắt khối" },
+  { name: "Cơm gà xối mỡ", region: "Miền Nam", category: "Thịt gà", method: "Chiên", main: "đùi gà" },
+  { name: "Cơm sườn bì chả", region: "Miền Nam", category: "Suất đặc biệt", method: "Nướng", main: "sườn cốt lết, bì và chả trứng", amount: 750 },
+  { name: "Cơm tấm sườn trứng", region: "Miền Nam", category: "Suất đặc biệt", method: "Nướng", main: "sườn cốt lết và trứng", amount: 700 },
+  { name: "Cơm chiên Dương Châu", region: "Miền Nam", category: "Cơm chiên", method: "Xào", main: "trứng, tôm và thịt xá xíu", amount: 600 },
+  { name: "Cơm chiên cá mặn", region: "Miền Nam", category: "Cơm chiên", method: "Xào", main: "cá mặn, trứng và thịt gà", amount: 550 },
+  { name: "Cơm gà áp chảo tiêu đen", region: "Miền Bắc", category: "Cơm văn phòng", method: "Chiên", main: "ức gà cắt miếng" },
+  { name: "Cơm cá hồi áp chảo", region: "Miền Bắc", category: "Cơm văn phòng", method: "Chiên", main: "cá hồi phi lê" },
+  { name: "Cơm bò sốt nấm", region: "Miền Bắc", category: "Cơm văn phòng", method: "Sốt", main: "thịt bò và nấm", amount: 650 },
+  { name: "Cơm gà sốt cam", region: "Miền Bắc", category: "Cơm văn phòng", method: "Sốt", main: "ức gà cắt miếng" },
+  { name: "Cơm đậu hũ non sốt nấm", region: "Miền Bắc", category: "Cơm văn phòng", method: "Sốt", main: "đậu hũ non và nấm", amount: 600 },
+];
+
+const canteenMethodIngredients = (method: CanteenMethod): Ingredient[] => {
+  const shared = [
+    ingredient(25, "ml", "dầu ăn", "Gia vị"),
+    ingredient(20, "g", "hành tím", "Gia vị", "băm"),
+    ingredient(12, "g", "tỏi", "Gia vị", "băm"),
+  ];
+  const byMethod: Record<CanteenMethod, Ingredient[]> = {
+    Kho: [ingredient(250, "ml", "nước dừa hoặc nước dùng", "Phần chính"), ingredient(30, "ml", "nước mắm", "Gia vị"), ingredient(15, "g", "đường", "Gia vị"), ingredient(2, "g", "tiêu", "Gia vị")],
+    Rim: [ingredient(35, "ml", "nước mắm", "Gia vị"), ingredient(20, "g", "đường", "Gia vị"), ingredient(80, "ml", "nước", "Phần chính"), ingredient(2, "g", "tiêu", "Gia vị")],
+    Xào: [ingredient(250, "g", "rau củ dùng để xào", "Phần chính", "cắt đều"), ingredient(20, "ml", "nước tương", "Gia vị"), ingredient(10, "ml", "nước mắm", "Gia vị")],
+    Chiên: [ingredient(60, "ml", "dầu chiên", "Gia vị"), ingredient(20, "ml", "nước mắm hoặc nước tương", "Gia vị"), ingredient(10, "g", "đường", "Gia vị")],
+    Nướng: [ingredient(25, "ml", "nước mắm", "Gia vị"), ingredient(20, "g", "mật ong", "Gia vị"), ingredient(10, "ml", "nước tương", "Gia vị"), ingredient(2, "g", "tiêu", "Gia vị")],
+    Sốt: [ingredient(280, "g", "cà chua", "Phần chính", "băm nhỏ"), ingredient(20, "ml", "nước mắm hoặc nước tương", "Gia vị"), ingredient(10, "g", "đường", "Gia vị")],
+    Hấp: [ingredient(20, "g", "gừng", "Gia vị", "thái sợi"), ingredient(30, "g", "hành lá", "Ăn kèm", "thái nhỏ"), ingredient(15, "ml", "nước tương", "Gia vị")],
+    Luộc: [ingredient(25, "g", "gừng", "Gia vị", "đập dập"), ingredient(20, "ml", "nước mắm", "Gia vị"), ingredient(1, "quả", "chanh", "Ăn kèm")],
+    "Cà ri": [ingredient(250, "ml", "nước cốt dừa", "Phần chính"), ingredient(250, "g", "khoai tây và cà rốt", "Phần chính", "cắt khối"), ingredient(18, "g", "bột cà ri", "Gia vị")],
+  };
+  return [...shared, ...byMethod[method]];
+};
+
+const canteenCookingStep = (dish: CanteenDishSeed): RecipeStep => {
+  const instructions: Record<CanteenMethod, string> = {
+    Kho: `Cho ${dish.main} vào nồi cùng nước kho đã định lượng; đun sôi rồi hạ nhỏ lửa đến khi chín và sốt bám nhẹ.`,
+    Rim: `Đảo săn ${dish.main}, thêm hỗn hợp nước rim và đun lửa vừa–nhỏ; trở đều đến khi sốt áo quanh nguyên liệu.`,
+    Xào: `Làm chảo thật nóng, xào ${dish.main} theo mẻ nhỏ; cho rau củ vào sau để giữ độ giòn rồi trộn lại.`,
+    Chiên: `Làm nóng dầu ổn định, chiên hoặc áp chảo ${dish.main} theo mẻ đến vàng và chín hoàn toàn; để ráo trên giá.`,
+    Nướng: `Làm nóng lò hoặc chảo nướng, nướng ${dish.main} đến vàng hai mặt và chín; quét sốt mỏng ở cuối để không cháy.`,
+    Sốt: `Áp chảo ${dish.main} vừa chín, nấu sốt cà đến sánh rồi cho phần chính vào đảo nhẹ để phủ đều.`,
+    Hấp: `Cho ${dish.main} vào dụng cụ hấp đã nóng, hấp đến chín hoàn toàn rồi thêm hành và gừng ở cuối.`,
+    Luộc: `Cho ${dish.main} vào nước vừa sôi cùng gừng, hạ lửa và luộc đến chín; vớt ra để nghỉ trước khi cắt.`,
+    "Cà ri": `Xào thơm bột cà ri, cho ${dish.main} vào đảo săn; thêm nước cốt dừa và rau củ, nấu nhỏ lửa đến mềm.`,
+  };
+  const temperatures: Partial<Record<CanteenMethod, string>> = {
+    Chiên: "170–175°C",
+    Nướng: "190–200°C",
+    Hấp: "Hơi nước mạnh",
+  };
+  return step("Nấu món chính", instructions[dish.method], "15–30 phút", temperatures[dish.method]);
+};
+
+const createCanteenRecipe = (dish: CanteenDishSeed, index: number): Recipe => {
+  const regionIndex = regionSeeds.findIndex((seed) => seed.region === dish.region);
+  const regionSeed = regionSeeds[regionIndex];
+  const ingredients = dedupeIngredients([
+    ingredient(360, "g", "gạo", "Phần chính", "vo nhẹ, để ráo"),
+    ingredient(dish.amount ?? 600, "g", dish.main, "Phần chính"),
+    ingredient(300, "g", "rau xanh theo mùa", "Ăn kèm", "rửa sạch"),
+    ingredient(500, "ml", "canh rau trong ngày", "Ăn kèm"),
+    ...canteenMethodIngredients(dish.method),
+    ingredient(8, "g", "muối", "Gia vị"),
+  ]);
+  const steps = [
+    step("Chuẩn bị và tách khu vực", `Cân nguyên liệu cho 4 suất ${dish.name}; để riêng ${dish.main}, rau và thực phẩm ăn ngay.`, "12 phút"),
+    step("Nấu cơm", "Nấu gạo với lượng nước phù hợp; khi chín ủ kín 10 phút rồi xới tơi để chia suất đồng đều.", "25 phút"),
+    step("Sơ chế món chính", `Làm sạch và cắt ${dish.main} đồng đều; thấm khô trước khi ướp để gia vị bám tốt.`, "10 phút"),
+    step("Ướp theo mẻ", "Trộn phần chính với một nửa gia vị, để thấm trong ngăn mát; giữ phần sốt còn lại cho lúc nấu.", "15 phút"),
+    canteenCookingStep(dish),
+    step("Chuẩn bị rau và canh", "Luộc hoặc xào rau vừa chín; nấu canh trong ngày và giữ riêng từng món để không lẫn mùi.", "12 phút"),
+    step("Chia suất", "Chia cơm, món chính, rau và canh theo định lượng; phục vụ nóng hoặc đóng hộp ngay sau khi hoàn thiện.", "5 phút"),
+  ];
+  const totalCook = dish.method === "Kho" || dish.method === "Cà ri" ? 45 : 30;
+
+  return {
+    id: 1001 + index,
+    name: dish.name,
+    baseName: dish.name,
+    region: dish.region,
+    continent: "Việt Nam",
+    origin: `${regionSeed.origin} · Cơm quán`,
+    description: `${dish.name} được chuẩn hóa thành suất cơm 4 người với món chính, rau và canh; phù hợp bếp gia đình, quán cơm bình dân hoặc cơm văn phòng.`,
+    time: 27 + totalCook + 5,
+    prepTime: 27,
+    cookTime: totalCook,
+    restTime: 5,
+    difficulty: "Vừa",
+    servings: 4,
+    image: "/food/com-quan.webp",
+    tags: ["Cơm quán", "Cơm bình dân", "Cơm văn phòng", dish.category, dish.method],
+    ingredients,
+    steps,
+    equipment: ["Nồi cơm điện hoặc nồi cơm công nghiệp", "Chảo hoặc nồi đáy dày", "Cân bếp", "Khay chia suất", "Dao và thớt riêng cho thực phẩm sống"],
+    allergens: allergensFor(ingredients),
+    tips: [
+      "Cân thử 5 suất đầu tiên và ghi lại định lượng thực tế để bếp giữ chất lượng ổn định trong giờ cao điểm.",
+      "Nấu theo mẻ vừa đủ cho từng ca; không trộn mẻ mới với món đã giữ nóng lâu.",
+      "Rau, canh và món chính nên có dụng cụ chia riêng để kiểm soát khẩu phần.",
+    ],
+    substitutions: [
+      "Có thể đổi rau và canh theo mùa nhưng giữ nguyên định lượng mỗi suất.",
+      "Nếu thay phần đạm, cần tính lại giá vốn và thời gian làm chín trước khi đưa vào bán.",
+    ],
+    storage: "Món nấu xong nên phục vụ theo từng ca. Phần cần bảo quản phải làm nguội nhanh, đậy kín, ghi thời gian và hâm nóng kỹ một lần trước khi dùng.",
+    doneness: includesAny(dish.name, ["gà"])
+      ? "Phần thịt dày nhất đạt ít nhất 74°C; cơm chín tơi và rau còn màu tự nhiên."
+      : includesAny(dish.name, ["cá", "tôm", "mực", "lươn"])
+        ? "Hải sản chín đục, săn vừa; cơm chín tơi và món chính không bị khô."
+        : "Món chính chín đều, sốt bám vừa; cơm tơi, rau vừa chín và các phần được chia đồng đều.",
+    safety: safetyFor(dish.name),
+    variation: "Suất cơm quán",
+    sourceNote: "Định lượng dành cho 4 suất mẫu. Khi kinh doanh, cần nấu thử, cân lại hao hụt thực tế và tuân thủ yêu cầu an toàn thực phẩm tại địa phương.",
+  };
+};
+
+export const canteenRecipes: Recipe[] = canteenDishSeeds.map(createCanteenRecipe);
+export const recipes: Recipe[] = [...coreRecipes, ...canteenRecipes];
+
 const invalidRecipes = recipes.filter(
   (recipe) =>
     recipe.ingredients.length < 8 ||
@@ -912,7 +1082,7 @@ const invalidRecipes = recipes.filter(
     recipe.ingredients.some((item) => /nguyên liệu chính cho|vừa đủ/i.test(item.item)),
 );
 
-if (recipes.length !== 1000 || invalidRecipes.length > 0) {
+if (recipes.length !== 1050 || canteenRecipes.length !== 50 || invalidRecipes.length > 0) {
   throw new Error(`Dữ liệu công thức không đạt chuẩn: ${recipes.length} mục, ${invalidRecipes.length} mục chưa đủ chi tiết.`);
 }
 
@@ -921,10 +1091,10 @@ export const regions: Array<{
   eyebrow: string;
   description: string;
 }> = [
-  { key: "Tất cả", eyebrow: "1.000 công thức", description: "Kho ẩm thực toàn cầu" },
-  { key: "Miền Bắc", eyebrow: "100 món", description: "Thanh nhã, tinh tế" },
-  { key: "Miền Trung", eyebrow: "100 món", description: "Đậm đà, cay thơm" },
-  { key: "Miền Nam", eyebrow: "100 món", description: "Hào sảng, phong phú" },
+  { key: "Tất cả", eyebrow: "1.050 công thức", description: "Kho ẩm thực toàn cầu" },
+  { key: "Miền Bắc", eyebrow: "116 món", description: "Thanh nhã, tinh tế" },
+  { key: "Miền Trung", eyebrow: "115 món", description: "Đậm đà, cay thơm" },
+  { key: "Miền Nam", eyebrow: "119 món", description: "Hào sảng, phong phú" },
   { key: "Đông Á", eyebrow: "100 món", description: "Umami cân bằng" },
   { key: "Đông Nam Á", eyebrow: "100 món", description: "Rực rỡ thảo mộc" },
   { key: "Nam Á", eyebrow: "100 món", description: "Ấm nồng gia vị" },

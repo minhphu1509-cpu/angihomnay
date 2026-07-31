@@ -3,12 +3,14 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
+  canteenRecipes,
   featuredRecipeIds,
   Recipe,
   recipes,
   RegionKey,
   regions,
 } from "./recipes";
+import { officialBusinessLinks, startupSteps, weeklyMenus } from "./guides";
 
 type RegionFilter = "Tất cả" | RegionKey;
 
@@ -285,6 +287,65 @@ export default function Home() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeWeek, setActiveWeek] = useState(0);
+  const [businessInputs, setBusinessInputs] = useState({
+    portionsPerDay: 80,
+    pricePerPortion: 35000,
+    ingredientCost: 15000,
+    packagingCost: 2000,
+    fixedCostPerMonth: 25000000,
+    sellingDays: 26,
+  });
+
+  const businessResult = useMemo(() => {
+    const contributionPerPortion =
+      businessInputs.pricePerPortion -
+      businessInputs.ingredientCost -
+      businessInputs.packagingCost;
+    const monthlyPortions =
+      businessInputs.portionsPerDay * businessInputs.sellingDays;
+    const revenue = monthlyPortions * businessInputs.pricePerPortion;
+    const variableCost =
+      monthlyPortions *
+      (businessInputs.ingredientCost + businessInputs.packagingCost);
+    const estimatedProfit =
+      revenue - variableCost - businessInputs.fixedCostPerMonth;
+    const breakEvenPerDay =
+      contributionPerPortion > 0 && businessInputs.sellingDays > 0
+        ? Math.ceil(
+            businessInputs.fixedCostPerMonth /
+              contributionPerPortion /
+              businessInputs.sellingDays,
+          )
+        : null;
+    const foodCostRatio =
+      businessInputs.pricePerPortion > 0
+        ? (businessInputs.ingredientCost /
+            businessInputs.pricePerPortion) *
+          100
+        : 0;
+
+    return {
+      revenue,
+      estimatedProfit,
+      breakEvenPerDay,
+      foodCostRatio,
+      contributionPerPortion,
+    };
+  }, [businessInputs]);
+
+  const money = (value: number) =>
+    Math.round(value).toLocaleString("vi-VN") + " ₫";
+
+  const updateBusinessInput = (
+    key: keyof typeof businessInputs,
+    value: number,
+  ) => {
+    setBusinessInputs((current) => ({
+      ...current,
+      [key]: Number.isFinite(value) ? Math.max(0, value) : 0,
+    }));
+  };
 
   const toggleFavorite = (id: number) => {
     setFavorites((current) => {
@@ -328,6 +389,14 @@ export default function Home() {
     requestAnimationFrame(explore);
   };
 
+  const showAllCanteenRecipes = () => {
+    setQuery("Cơm quán");
+    setActiveRegion("Tất cả");
+    setShowFavorites(false);
+    setVisibleCount(12);
+    requestAnimationFrame(explore);
+  };
+
   return (
     <main>
       <header className="site-header">
@@ -340,9 +409,10 @@ export default function Home() {
         </a>
         <nav className={menuOpen ? "open" : ""} aria-label="Điều hướng chính">
           <a href="#mon-viet" onClick={() => setMenuOpen(false)}>Món Việt</a>
-          <a href="#the-gioi" onClick={() => setMenuOpen(false)}>Thế giới</a>
-          <a href="#kho-mon" onClick={() => setMenuOpen(false)}>Công thức</a>
-          <a href="#ve-chung-toi" onClick={() => setMenuOpen(false)}>Câu chuyện</a>
+          <a href="#com-quan" onClick={() => setMenuOpen(false)}>Cơm quán</a>
+          <a href="#thuc-don-tuan" onClick={() => setMenuOpen(false)}>Thực đơn tuần</a>
+          <a href="#mo-quan" onClick={() => setMenuOpen(false)}>Mở quán</a>
+          <a href="#kho-mon" onClick={() => setMenuOpen(false)}>1.050 món</a>
         </nav>
         <div className="header-actions">
           <button
@@ -370,7 +440,7 @@ export default function Home() {
           <h1>Hôm nay,<br />mình <em>ăn gì?</em></h1>
           <p className="hero-description">
             Từ mâm cơm ba miền đến tinh hoa ẩm thực năm châu.
-            1.000 công thức được kể bằng hương vị, ký ức và niềm vui vào bếp.
+            1.050 công thức được kể bằng hương vị, ký ức và niềm vui vào bếp.
           </p>
           <div className="hero-search">
             <SearchIcon />
@@ -391,11 +461,11 @@ export default function Home() {
               Gợi ý món hôm nay <ArrowIcon />
             </button>
             <button className="text-cta" onClick={explore}>
-              Khám phá 1.000 món
+              Khám phá 1.050 món
             </button>
           </div>
           <div className="hero-stats" aria-label="Thống kê kho món">
-            <div><strong>1.000</strong><span>công thức</span></div>
+            <div><strong>1.050</strong><span>công thức</span></div>
             <div><strong>3 miền</strong><span>Việt Nam</span></div>
             <div><strong>6</strong><span>châu lục</span></div>
           </div>
@@ -414,7 +484,7 @@ export default function Home() {
             <Image src="/food/banh-xeo.webp" alt="Bánh xèo miền Tây" fill sizes="(max-width: 900px) 42vw, 24vw" priority />
             <span><small>Hào sảng phương Nam</small>Bánh xèo</span>
           </button>
-          <span className="stamp">1000<br /><small>món ngon</small></span>
+          <span className="stamp">1050<br /><small>món ngon</small></span>
         </div>
       </section>
 
@@ -454,6 +524,218 @@ export default function Home() {
               onOpen={() => setSelectedRecipe(recipe)}
             />
           ))}
+        </div>
+      </section>
+
+      <section className="canteen-section" id="com-quan">
+        <div className="section-heading canteen-heading">
+          <div>
+            <p className="section-kicker">50 món bán hằng ngày</p>
+            <h2>Cơm ngon cho quán Việt</h2>
+            <p className="section-description">
+              Mỗi công thức được chuẩn hóa thành suất cơm gồm món chính, cơm,
+              rau và canh — phù hợp quán cơm bình dân lẫn cơm văn phòng.
+            </p>
+          </div>
+          <button onClick={showAllCanteenRecipes}>
+            Xem đủ 50 món <ArrowIcon />
+          </button>
+        </div>
+        <div className="canteen-benefits">
+          <span><b>01</b> Định lượng 4 suất</span>
+          <span><b>02</b> Quy trình theo mẻ</span>
+          <span><b>03</b> Gợi ý chia suất</span>
+          <span><b>04</b> Lưu ý bảo quản</span>
+        </div>
+        <div className="canteen-grid">
+          {canteenRecipes.slice(0, 6).map((recipe) => (
+            <RecipeCard
+              key={recipe.id}
+              recipe={recipe}
+              favorite={favorites.includes(recipe.id)}
+              onFavorite={() => toggleFavorite(recipe.id)}
+              onOpen={() => setSelectedRecipe(recipe)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="weekly-section" id="thuc-don-tuan">
+        <div className="weekly-intro">
+          <p className="section-kicker">Bếp nhà nhẹ việc</p>
+          <h2>Thực đơn trọn tuần</h2>
+          <p>
+            Bốn tuần gợi ý, mỗi ngày ba món cân đối giữa món chính, rau và
+            canh. Có mẹo chuẩn bị trước để giảm thời gian đứng bếp.
+          </p>
+          <div className="week-tabs" role="tablist" aria-label="Chọn thực đơn tuần">
+            {weeklyMenus.map((week, index) => (
+              <button
+                key={week.id}
+                className={activeWeek === index ? "active" : ""}
+                onClick={() => setActiveWeek(index)}
+                role="tab"
+                aria-selected={activeWeek === index}
+              >
+                Tuần {index + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="weekly-board">
+          <div className="weekly-board-heading">
+            <div>
+              <span>Thực đơn đề xuất</span>
+              <h3>{weeklyMenus[activeWeek].title}</h3>
+            </div>
+            <p>{weeklyMenus[activeWeek].description}</p>
+          </div>
+          <div className="weekly-days">
+            {weeklyMenus[activeWeek].days.map((day, index) => (
+              <article key={day.day}>
+                <div className="day-number">{String(index + 1).padStart(2, "0")}</div>
+                <div>
+                  <h4>{day.day}</h4>
+                  <ul>
+                    {day.dishes.map((dish) => <li key={dish}>{dish}</li>)}
+                  </ul>
+                  <p><b>Chuẩn bị trước:</b> {day.prepTip}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="startup-section" id="mo-quan">
+        <div className="startup-header">
+          <div>
+            <p className="section-kicker">Từ căn bếp đến cửa hàng</p>
+            <h2>Bộ khởi nghiệp quán cơm</h2>
+          </div>
+          <p>
+            Lập thực đơn, chuẩn hóa định lượng, kiểm tra điểm hòa vốn và
+            chuẩn bị vận hành trước khi đầu tư lớn.
+          </p>
+        </div>
+
+        <div className="startup-layout">
+          <div className="startup-roadmap">
+            {startupSteps.map((item) => (
+              <article key={item.number}>
+                <span>{item.number}</span>
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                  <ul>{item.tasks.map((task) => <li key={task}>{task}</li>)}</ul>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <aside className="business-calculator">
+            <p className="section-kicker">Máy tính kinh doanh</p>
+            <h3>Ước tính điểm hòa vốn</h3>
+            <p className="calculator-intro">
+              Thay số liệu mẫu bằng chi phí thực tế của quán để xem kết quả.
+            </p>
+            <div className="calculator-fields">
+              <label>
+                <span>Số suất/ngày</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={businessInputs.portionsPerDay}
+                  onChange={(event) => updateBusinessInput("portionsPerDay", Number(event.target.value))}
+                />
+              </label>
+              <label>
+                <span>Số ngày bán/tháng</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="31"
+                  value={businessInputs.sellingDays}
+                  onChange={(event) => updateBusinessInput("sellingDays", Number(event.target.value))}
+                />
+              </label>
+              <label>
+                <span>Giá bán/suất (₫)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1000"
+                  value={businessInputs.pricePerPortion}
+                  onChange={(event) => updateBusinessInput("pricePerPortion", Number(event.target.value))}
+                />
+              </label>
+              <label>
+                <span>Nguyên liệu/suất (₫)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="500"
+                  value={businessInputs.ingredientCost}
+                  onChange={(event) => updateBusinessInput("ingredientCost", Number(event.target.value))}
+                />
+              </label>
+              <label>
+                <span>Bao bì/suất (₫)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="500"
+                  value={businessInputs.packagingCost}
+                  onChange={(event) => updateBusinessInput("packagingCost", Number(event.target.value))}
+                />
+              </label>
+              <label>
+                <span>Chi phí cố định/tháng (₫)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="500000"
+                  value={businessInputs.fixedCostPerMonth}
+                  onChange={(event) => updateBusinessInput("fixedCostPerMonth", Number(event.target.value))}
+                />
+              </label>
+            </div>
+            <div className="calculator-results" aria-live="polite">
+              <div><span>Doanh thu ước tính</span><strong>{money(businessResult.revenue)}</strong></div>
+              <div><span>Lãi góp mỗi suất</span><strong>{money(businessResult.contributionPerPortion)}</strong></div>
+              <div><span>Giá vốn nguyên liệu</span><strong>{businessResult.foodCostRatio.toFixed(1)}%</strong></div>
+              <div>
+                <span>Hòa vốn khoảng</span>
+                <strong>
+                  {businessResult.breakEvenPerDay === null
+                    ? "Chưa thể tính"
+                    : `${businessResult.breakEvenPerDay} suất/ngày`}
+                </strong>
+              </div>
+              <div className={businessResult.estimatedProfit >= 0 ? "positive" : "negative"}>
+                <span>Lợi nhuận ước tính</span>
+                <strong>{money(businessResult.estimatedProfit)}</strong>
+              </div>
+            </div>
+            <p className="calculator-note">
+              Đây là mô hình ước tính, chưa bao gồm thuế, khấu hao, hao hụt,
+              phí nền tảng giao đồ ăn và chi phí phát sinh.
+            </p>
+          </aside>
+        </div>
+
+        <div className="official-guides">
+          <div>
+            <strong>Nguồn chính thức cần kiểm tra trước khi mở bán</strong>
+            <p>Quy định có thể thay đổi theo thời điểm và địa phương.</p>
+          </div>
+          <div>
+            {officialBusinessLinks.map((link) => (
+              <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
+                {link.label} <ArrowIcon />
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -510,7 +792,7 @@ export default function Home() {
                 setQuery(event.target.value);
                 setVisibleCount(12);
               }}
-              placeholder="Tìm trong 1.000 món..."
+              placeholder="Tìm trong 1.050 món..."
             />
           </label>
         </div>
@@ -572,12 +854,13 @@ export default function Home() {
       <footer>
         <div className="footer-brand">
           <span className="brand-mark">Ă</span>
-          <div><strong>Ăn gì hôm nay</strong><p>1.000 câu chuyện · 1.000 món ngon</p></div>
+          <div><strong>Ăn gì hôm nay</strong><p>1.050 câu chuyện · 1.050 món ngon</p></div>
         </div>
         <div className="footer-links">
           <a href="#mon-viet">Món Việt</a>
-          <a href="#the-gioi">Món thế giới</a>
-          <a href="#kho-mon">Kho công thức</a>
+          <a href="#com-quan">Cơm quán</a>
+          <a href="#thuc-don-tuan">Thực đơn tuần</a>
+          <a href="#mo-quan">Mở quán</a>
         </div>
         <p className="copyright">© 2026 Ăn gì hôm nay. Nấu bằng niềm vui.</p>
       </footer>
