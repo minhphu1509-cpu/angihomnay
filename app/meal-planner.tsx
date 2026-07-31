@@ -7,6 +7,7 @@ import {
   PlannerSlot,
   ShoppingItem,
   VietnameseTrayHistory,
+  buildVietnameseTrayShoppingList,
   buildVietnameseTrayWeek,
   estimateMealBudget,
   summarizeVietnameseTrayHistory,
@@ -54,6 +55,7 @@ export default function MealPlanner({
   const [traySeed, setTraySeed] = useState("default-week");
   const [trayRound, setTrayRound] = useState(1);
   const [trayHistory, setTrayHistory] = useState<VietnameseTrayHistory>();
+  const [selectedTrayDayIndex, setSelectedTrayDayIndex] = useState(0);
   const mealBudget = useMemo(
     () => estimateMealBudget(trayDiners, budgetPerPerson),
     [trayDiners, budgetPerPerson],
@@ -61,6 +63,11 @@ export default function MealPlanner({
   const vietnameseTrayWeek = useMemo(() => {
     return buildVietnameseTrayWeek(traySeed, trayHistory);
   }, [trayHistory, traySeed]);
+  const selectedTrayDay = vietnameseTrayWeek[selectedTrayDayIndex] ?? vietnameseTrayWeek[0];
+  const trayDayShoppingItems = useMemo(
+    () => buildVietnameseTrayShoppingList(selectedTrayDay, trayDiners),
+    [selectedTrayDay, trayDiners],
+  );
   const recipeMap = new Map(recipes.map((recipe) => [recipe.id, recipe]));
   const plannedCount = planner.filter((slot) => slot.recipeId !== null).length;
   const checkedCount = shoppingItems.filter((item) =>
@@ -212,9 +219,18 @@ export default function MealPlanner({
         </div>
 
         <div className="tray-week">
-          {vietnameseTrayWeek.map((day) => (
-            <article key={day.day} className="tray-day">
-              <h4>{day.day}</h4>
+          {vietnameseTrayWeek.map((day, index) => (
+            <article
+              key={day.day}
+              className={`tray-day ${index === selectedTrayDayIndex ? "selected" : ""}`}
+            >
+              <button
+                className="tray-day-button"
+                onClick={() => setSelectedTrayDayIndex(index)}
+                aria-pressed={index === selectedTrayDayIndex}
+              >
+                {day.day}
+              </button>
               {[day.lunch, day.dinner].map((meal) => (
                 <section key={meal.session} className="tray-meal">
                   <div className="tray-meal-head">
@@ -233,6 +249,28 @@ export default function MealPlanner({
               ))}
             </article>
           ))}
+        </div>
+
+        <div className="tray-shopping">
+          <div>
+            <p className="section-kicker">Đi chợ theo ngày</p>
+            <h4>Danh sách cho {selectedTrayDay.day}</h4>
+            <p>
+              Tự động gom theo bữa trưa và bữa chiều, định lượng theo{" "}
+              <b>{trayDiners} người</b> và ngân sách{" "}
+              <b>{formatMoney(mealBudget.perDay)} / ngày</b>.
+            </p>
+          </div>
+          <ul>
+            {trayDayShoppingItems.map((item) => (
+              <li key={`${item.group}-${item.item}`}>
+                <span>{item.group}</span>
+                <strong>{item.item}</strong>
+                <em>{item.amount}</em>
+                <small>{item.note}</small>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
