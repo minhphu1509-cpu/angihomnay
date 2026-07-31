@@ -678,6 +678,91 @@ const familyBasics = (family: DishFamily): Ingredient[] => {
   ];
 };
 
+const dishAccentFor = (name: string, family: DishFamily): Ingredient => {
+  const rules: Array<[string[], Ingredient]> = [
+    [["rươi"], ingredient(120, "g", "vỏ quýt và thì là", "Gia vị", "băm nhỏ")],
+    [["lá lốt"], ingredient(80, "g", "lá lốt", "Gia vị", "rửa sạch, để ráo")],
+    [["mắm tôm"], ingredient(35, "g", "mắm tôm", "Gia vị", "đánh bông với chanh")],
+    [["mắm ruốc"], ingredient(30, "g", "mắm ruốc", "Gia vị", "hòa lọc")],
+    [["riềng"], ingredient(60, "g", "riềng", "Gia vị", "giã hoặc thái lát")],
+    [["tương"], ingredient(45, "g", "tương bần", "Gia vị")],
+    [["sấu"], ingredient(80, "g", "sấu xanh", "Gia vị", "cạo vỏ")],
+    [["dọc mùng"], ingredient(180, "g", "dọc mùng", "Phần chính", "bóp muối, xả sạch")],
+    [["rau đay"], ingredient(250, "g", "rau đay", "Phần chính", "nhặt lá")],
+    [["hoa chuối", "bắp chuối"], ingredient(220, "g", "hoa chuối", "Phần chính", "bào mỏng, ngâm chua nhẹ")],
+    [["ngó sen"], ingredient(240, "g", "ngó sen", "Phần chính", "chẻ sợi")],
+    [["măng cụt"], ingredient(250, "g", "măng cụt xanh", "Phần chính", "tách múi")],
+    [["vả trộn"], ingredient(350, "g", "trái vả", "Phần chính", "luộc sơ, thái lát")],
+    [["xoài"], ingredient(220, "g", "xoài xanh", "Phần chính", "bào sợi")],
+    [["khổ qua"], ingredient(350, "g", "khổ qua", "Phần chính", "bỏ ruột")],
+    [["lá giang"], ingredient(120, "g", "lá giang", "Gia vị", "vò nhẹ")],
+    [["thơm", "dứa"], ingredient(180, "g", "thơm", "Phần chính", "cắt miếng")],
+    [["nước dừa", "dừa"], ingredient(220, "ml", "nước dừa tươi", "Gia vị")],
+    [["cốt dừa"], ingredient(180, "ml", "nước cốt dừa", "Gia vị")],
+    [["hến"], ingredient(450, "g", "thịt hến", "Phần chính", "rửa sạch")],
+    [["bún kèn"], ingredient(220, "g", "cá xay nấu kèn", "Phần chính")],
+    [["bún quậy"], ingredient(220, "g", "chả tôm quết", "Phần chính", "quết dẻo")],
+    [["ốc"], ingredient(500, "g", "ốc", "Phần chính", "luộc lấy thịt")],
+    [["ngan"], ingredient(650, "g", "thịt ngan", "Phần chính", "làm sạch")],
+    [["lươn"], ingredient(550, "g", "lươn", "Phần chính", "làm sạch nhớt")],
+    [["tôm chua"], ingredient(220, "g", "tôm chua Huế", "Gia vị", "để ráo phần nước ngâm")],
+    [["cua"], ingredient(500, "g", "cua", "Phần chính", "sơ chế theo món")],
+    [["mực"], ingredient(500, "g", "mực", "Phần chính", "khứa nhẹ")],
+    [["tôm"], ingredient(450, "g", "tôm", "Phần chính", "bỏ chỉ lưng")],
+    [["cá mai"], ingredient(450, "g", "cá mai", "Phần chính", "làm sạch")],
+    [["cá kèo"], ingredient(550, "g", "cá kèo", "Phần chính", "làm sạch")],
+    [["cá lóc"], ingredient(600, "g", "cá lóc", "Phần chính", "cắt khoanh")],
+    [["cá bống thệ"], ingredient(550, "g", "cá bống thệ", "Phần chính", "làm sạch")],
+    [["cá bống sông trà"], ingredient(550, "g", "cá bống sông Trà", "Phần chính", "làm sạch")],
+    [["cá bống"], ingredient(550, "g", "cá bống", "Phần chính", "làm sạch")],
+    [["cá nục"], ingredient(600, "g", "cá nục", "Phần chính", "làm sạch")],
+    [["cá rô"], ingredient(550, "g", "cá rô", "Phần chính", "làm sạch")],
+    [["cá trắm"], ingredient(650, "g", "cá trắm", "Phần chính", "cắt khúc")],
+    [["cá hồi"], ingredient(520, "g", "cá hồi", "Phần chính", "cắt phần đều")],
+    [["bò kho"], ingredient(60, "g", "sả và hoa hồi", "Gia vị", "đập dập")],
+    [["bò né"], ingredient(35, "g", "bơ lạt", "Gia vị")],
+    [["bò lúc lắc"], ingredient(120, "g", "ớt chuông", "Phần chính", "cắt vuông")],
+    [["gà rang gừng", "gà kho gừng"], ingredient(55, "g", "gừng", "Gia vị", "thái sợi")],
+    [["gà xào sả", "gà kho sả"], ingredient(4, "cây", "sả", "Gia vị", "băm nhỏ")],
+    [["gà hấp lá chanh"], ingredient(15, "lá", "lá chanh", "Gia vị", "thái chỉ")],
+    [["vịt nấu chao"], ingredient(80, "g", "chao đỏ", "Gia vị", "tán nhuyễn")],
+    [["xôi xéo"], ingredient(260, "g", "đậu xanh cà vỏ", "Phần chính", "hấp chín, giã mịn")],
+    [["xôi gấc"], ingredient(180, "g", "thịt gấc", "Gia vị", "trộn với nếp")],
+    [["xôi"], ingredient(400, "g", "gạo nếp", "Phần chính", "ngâm mềm")],
+    [["cốm"], ingredient(300, "g", "cốm", "Phần chính")],
+    [["bánh chưng"], ingredient(450, "g", "gạo nếp và lá dong", "Phần chính")],
+    [["bánh gai"], ingredient(120, "g", "lá gai", "Phần chính", "xay mịn")],
+    [["bánh khúc"], ingredient(120, "g", "rau khúc", "Phần chính", "giã nhuyễn")],
+    [["bánh tằm"], ingredient(320, "g", "bột gạo làm sợi bánh tằm", "Phần chính")],
+    [["bánh bò"], ingredient(180, "g", "đường thốt nốt", "Gia vị")],
+    [["bánh da lợn"], ingredient(160, "g", "đậu xanh cà vỏ", "Phần chính", "hấp chín")],
+    [["chè bắp"], ingredient(350, "g", "bắp nếp bào", "Phần chính")],
+    [["chè chuối"], ingredient(500, "g", "chuối sứ", "Phần chính", "cắt khoanh")],
+    [["chè đậu"], ingredient(280, "g", "đậu theo món", "Phần chính", "ngâm mềm")],
+    [["tào phớ"], ingredient(800, "ml", "sữa đậu nành", "Phần chính")],
+    [["sushi"], ingredient(8, "lá", "rong biển nori", "Phần chính")],
+    [["ramen"], ingredient(35, "g", "miso", "Gia vị")],
+    [["bibimbap"], ingredient(80, "g", "tương ớt gochujang", "Gia vị")],
+    [["tokbokki"], ingredient(500, "g", "bánh gạo Hàn Quốc", "Phần chính")],
+    [["kim chi"], ingredient(300, "g", "kim chi cải thảo", "Phần chính")],
+    [["đậu hũ tứ xuyên"], ingredient(35, "g", "tương đậu cay", "Gia vị")],
+    [["pad thai"], ingredient(45, "ml", "nước cốt me", "Gia vị")],
+    [["tom yum"], ingredient(8, "lá", "lá chanh Thái", "Gia vị")],
+    [["laksa"], ingredient(80, "g", "gia vị laksa", "Gia vị")],
+    [["nasi lemak"], ingredient(250, "ml", "nước cốt dừa", "Gia vị")],
+    [["biryani"], ingredient(2, "thìa cà phê", "garam masala", "Gia vị")],
+    [["pizza"], ingredient(250, "g", "phô mai mozzarella", "Phần chính")],
+    [["jollof"], ingredient(30, "g", "cà chua cô đặc", "Gia vị")],
+  ];
+  const matched = rules.find(([keys]) => keys.some((key) => includesAny(name, [key])));
+  if (matched) return matched[1];
+  if (family === "Món nước") return ingredient(40, "g", `gia vị nền riêng cho ${name}`, "Gia vị", "rang hoặc phi thơm trước khi nấu");
+  if (family === "Cơm") return ingredient(120, "g", `rau củ điểm vị cho ${name}`, "Phần chính", "cắt đều");
+  if (family === "Bánh bột") return ingredient(80, "g", `phần nhân hoặc topping đặc trưng ${name}`, "Phần chính", "chuẩn bị riêng");
+  if (family === "Món ngọt") return ingredient(60, "g", `nguyên liệu tạo hương ${name}`, "Gia vị", "thêm ở cuối");
+  return ingredient(35, "g", `gia vị hoàn thiện ${name}`, "Gia vị", "cho vào cuối để nhận diện món");
+};
+
 const dedupeIngredients = (items: Ingredient[]) => {
   const seen = new Set<string>();
   return items.filter((item) => {
@@ -690,11 +775,17 @@ const dedupeIngredients = (items: Ingredient[]) => {
 
 const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
   const commonStart = step("Chuẩn bị", `Cân đủ nguyên liệu cho ${name}; tách riêng thực phẩm sống, rau ăn kèm và gia vị.`, "10–15 phút");
+  const dishFocus = step(
+    `Xử lý điểm vị ${name}`,
+    `Sơ chế riêng phần ${dishAccentFor(name, family).item} để món có đúng dấu vị nhận diện, không nấu chung quá sớm làm mất mùi.`,
+    "4–8 phút",
+  );
   const commonFinish = step("Hoàn thiện", "Nếm lại, điều chỉnh từng ít một rồi trình bày và dùng ở trạng thái phù hợp với món.", "3 phút");
 
   const templates: Record<DishFamily, RecipeStep[]> = {
     "Món nước": [
       commonStart,
+      dishFocus,
       step("Xử lý phần chính", "Chần hoặc áp chảo nguyên liệu chính để loại bọt và tạo mùi thơm, sau đó để riêng.", "8 phút"),
       step("Tạo nước dùng", "Phi thơm gia vị nền, thêm nước dùng và đun sôi; hạ nhỏ lửa, hớt bọt để nước trong.", "25–40 phút", "Sôi lăn tăn"),
       step("Nấu nguyên liệu", "Cho nguyên liệu lâu chín trước, rau củ sau; giữ lửa vừa để chín đều mà không nát.", "15–25 phút"),
@@ -704,6 +795,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Cơm": [
       commonStart,
+      dishFocus,
       step("Chuẩn bị gạo", "Vo gạo nhẹ tay đến khi nước bớt đục, ngâm theo loại gạo rồi để ráo.", "20 phút"),
       step("Tạo nền vị", "Phi hành và gia vị ở lửa vừa đến thơm; cho nguyên liệu chính vào đảo săn.", "8–10 phút", "Lửa vừa"),
       step("Nấu cơm", "Thêm gạo và lượng nước dùng đã định lượng; đun sôi rồi hạ lửa rất nhỏ, đậy kín.", "18–25 phút", "Lửa rất nhỏ"),
@@ -713,6 +805,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Mì xào": [
       commonStart,
+      dishFocus,
       step("Chuẩn bị sợi", "Ngâm hoặc luộc sợi ngắn hơn hướng dẫn 1–2 phút; để ráo và trộn một ít dầu.", "8 phút"),
       step("Pha sốt", "Hòa các gia vị lỏng và gia vị khô thành một hỗn hợp đồng nhất.", "3 phút"),
       step("Xào phần chính", "Làm nóng chảo, xào nguyên liệu chính theo mẻ nhỏ đến vừa chín rồi lấy ra.", "5–7 phút", "Lửa lớn"),
@@ -722,6 +815,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Cà ri": [
       commonStart,
+      dishFocus,
       step("Ướp phần chính", "Trộn nguyên liệu chính với một nửa gia vị và để thấm.", "20 phút"),
       step("Rang gia vị", "Phi hành, gừng, tỏi; cho gia vị khô vào đảo 30–45 giây ở lửa nhỏ để dậy mùi.", "6 phút", "Lửa nhỏ"),
       step("Xào săn", "Cho nguyên liệu chính vào đảo đến khi bề mặt săn và phủ đều gia vị.", "7 phút", "Lửa vừa"),
@@ -731,6 +825,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Kho hầm": [
       commonStart,
+      dishFocus,
       step("Ướp", "Ướp nguyên liệu chính với gia vị trong thời gian ghi ở công thức.", "20 phút"),
       step("Áp chảo", "Làm nóng nồi, áp các mặt nguyên liệu đến vàng nhẹ để giữ cấu trúc.", "8 phút", "Lửa vừa–lớn"),
       step("Tạo nước kho", "Phi thơm gia vị nền, thêm phần nước và cạo nhẹ đáy nồi để lấy lớp vị bám.", "5 phút"),
@@ -740,6 +835,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Nướng": [
       commonStart,
+      dishFocus,
       step("Ướp", "Trộn đều nguyên liệu với gia vị, để thấm trong ngăn mát.", "30 phút"),
       step("Làm nóng thiết bị", "Làm nóng lò hoặc chảo nướng trước để bề mặt nguyên liệu se nhanh.", "10 phút", "200°C"),
       step("Nướng mặt đầu", "Xếp nguyên liệu một lớp, chừa khoảng cách để hơi nóng lưu thông.", "10–15 phút", "200°C"),
@@ -749,6 +845,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Chiên": [
       commonStart,
+      dishFocus,
       step("Chuẩn bị bề mặt", "Thấm khô nguyên liệu; pha hoặc áo lớp bột mỏng theo món.", "8 phút"),
       step("Làm nóng dầu", "Cho dầu vào chảo sâu lòng và làm nóng ổn định; không để dầu bốc khói.", "6 phút", "170–175°C"),
       step("Chiên theo mẻ", "Thả từng ít nguyên liệu, không làm chảo quá đầy; giữ nhiệt ổn định.", "4–7 phút/mẻ", "170–175°C"),
@@ -758,6 +855,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Xào": [
       commonStart,
+      dishFocus,
       step("Sơ chế đồng đều", "Thái nguyên liệu theo kích thước tương đương và để thật ráo trước khi xào.", "10 phút"),
       step("Pha sốt", "Hòa gia vị lỏng và khô trong bát riêng để có thể cho vào chảo cùng lúc.", "4 phút"),
       step("Làm nóng chảo", "Làm nóng chảo đến khi nhiệt ổn định, thêm dầu và láng nhanh quanh thành chảo.", "3 phút", "Lửa lớn"),
@@ -767,6 +865,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Hấp luộc": [
       commonStart,
+      dishFocus,
       step("Chuẩn bị nguyên liệu", "Làm sạch, cắt đồng đều và để ráo; ướp nhẹ nếu món cần giữ hương vị tự nhiên.", "10 phút"),
       step("Chuẩn bị thiết bị", "Đun nước đến sôi ổn định; lượng nước không được chạm thực phẩm khi hấp.", "8 phút", "100°C"),
       step("Làm chín phần chính", "Xếp nguyên liệu thoáng, đậy kín và làm chín theo kích thước; hạn chế mở nắp nhiều lần.", "12–25 phút", "Hơi nước mạnh"),
@@ -776,6 +875,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Gỏi salad": [
       commonStart,
+      dishFocus,
       step("Làm ráo rau", "Rửa rau bằng nước sạch, ngâm lạnh nếu cần rồi để thật ráo để sốt không bị loãng.", "10 phút"),
       step("Xử lý phần đạm", "Luộc, hấp hoặc áp chảo phần đạm đến chín; để nguội bớt rồi thái.", "10–15 phút"),
       step("Pha sốt", "Hòa phần chua, mặn và ngọt trước; sau đó mới thêm dầu hoặc nguyên liệu tạo độ sánh.", "4 phút"),
@@ -785,6 +885,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Bánh bột": [
       commonStart,
+      dishFocus,
       step("Pha bột", "Cân bột và chất lỏng chính xác; trộn đến đồng nhất, không còn bột khô.", "10 phút"),
       step("Cho bột nghỉ", "Đậy kín để bột hút nước hoặc lên men theo yêu cầu của món.", "30–60 phút"),
       step("Chuẩn bị nhân", "Nấu hoặc trộn phần nhân, để nguội bớt trước khi tạo hình.", "15 phút"),
@@ -794,6 +895,7 @@ const genericSteps = (name: string, family: DishFamily): RecipeStep[] => {
     ],
     "Món ngọt": [
       commonStart,
+      dishFocus,
       step("Chuẩn bị khuôn", "Lót hoặc chống dính khuôn; cân chính xác nguyên liệu khô và ướt riêng.", "8 phút"),
       step("Trộn nền", "Hòa tan đường trong chất lỏng, sau đó kết hợp từ từ với phần khô để tránh vón.", "8 phút"),
       step("Tạo hương", "Thêm nguyên liệu tạo hương và nếm độ ngọt trước khi làm chín.", "3 phút"),
@@ -906,6 +1008,7 @@ const createRecipe = (
     ...stapleFor(baseName, family),
     ...proteinFor(baseName),
     ...familyBasics(family),
+    dishAccentFor(baseName, family),
     ...regionalPantry[seed.region],
     ingredient(8, "g", "muối", "Gia vị"),
     ingredient(15, "g", "đường", "Gia vị", undefined, true),
@@ -1158,13 +1261,13 @@ const createCanteenRecipe = (dish: CanteenDishSeed, index: number): Recipe => {
     ingredient(8, "g", "muối", "Gia vị"),
   ]);
   const steps = [
-    step("Chuẩn bị và tách khu vực", `Cân nguyên liệu cho 4 suất ${dish.name}; để riêng ${dish.main}, rau và thực phẩm ăn ngay.`, "12 phút"),
-    step("Nấu cơm", "Nấu gạo với lượng nước phù hợp; khi chín ủ kín 10 phút rồi xới tơi để chia suất đồng đều.", "25 phút"),
-    step("Sơ chế món chính", `Làm sạch và cắt ${dish.main} đồng đều; thấm khô trước khi ướp để gia vị bám tốt.`, "10 phút"),
-    step("Ướp theo mẻ", "Trộn phần chính với một nửa gia vị, để thấm trong ngăn mát; giữ phần sốt còn lại cho lúc nấu.", "15 phút"),
+    step(`Chuẩn bị suất ${dish.name}`, `Cân nguyên liệu cho 4 suất ${dish.name}; để riêng ${dish.main}, rau và thực phẩm ăn ngay.`, "12 phút"),
+    step(`Nấu cơm cho ${dish.name}`, "Nấu gạo với lượng nước phù hợp; khi chín ủ kín 10 phút rồi xới tơi để chia suất đồng đều.", "25 phút"),
+    step(`Sơ chế ${dish.main}`, `Làm sạch và cắt ${dish.main} đồng đều; thấm khô trước khi ướp để gia vị bám tốt.`, "10 phút"),
+    step(`Ướp ${dish.name} theo mẻ`, "Trộn phần chính với một nửa gia vị, để thấm trong ngăn mát; giữ phần sốt còn lại cho lúc nấu.", "15 phút"),
     canteenCookingStep(dish),
-    step("Chuẩn bị rau và canh", "Luộc hoặc xào rau vừa chín; nấu canh trong ngày và giữ riêng từng món để không lẫn mùi.", "12 phút"),
-    step("Chia suất", "Chia cơm, món chính, rau và canh theo định lượng; phục vụ nóng hoặc đóng hộp ngay sau khi hoàn thiện.", "5 phút"),
+    step(`Chuẩn bị rau và canh cho ${dish.name}`, "Luộc hoặc xào rau vừa chín; nấu canh trong ngày và giữ riêng từng món để không lẫn mùi.", "12 phút"),
+    step(`Chia suất ${dish.name}`, "Chia cơm, món chính, rau và canh theo định lượng; phục vụ nóng hoặc đóng hộp ngay sau khi hoàn thiện.", "5 phút"),
   ];
   const totalCook = dish.method === "Kho" || dish.method === "Cà ri" ? 45 : 30;
 
