@@ -751,7 +751,7 @@ export default function Home() {
         <nav className={menuOpen ? "open" : ""} aria-label="Điều hướng chính">
           <a href="#mon-viet" onClick={() => setMenuOpen(false)}>Món Việt</a>
           <a href="#com-quan" onClick={() => setMenuOpen(false)}>Cơm quán</a>
-          <a href="#ke-hoach-tuan" onClick={() => setMenuOpen(false)}>Kế hoạch tuần</a>
+          <a href="#ke-hoach-tuan" onClick={() => setMenuOpen(false)}>Thực đơn trong tuần</a>
           <a href="#mo-quan" onClick={() => setMenuOpen(false)}>Mở quán</a>
           <a href="#kho-mon" onClick={() => setMenuOpen(false)}>300 món chọn lọc</a>
           <Link href="/quan-tri" onClick={() => setMenuOpen(false)}>CMS</Link>
@@ -1341,7 +1341,7 @@ export default function Home() {
         <div className="footer-links">
           <a href="#mon-viet">Món Việt</a>
           <a href="#com-quan">Cơm quán</a>
-          <a href="#ke-hoach-tuan">Kế hoạch tuần</a>
+          <a href="#ke-hoach-tuan">Thực đơn trong tuần</a>
           <a href="#mo-quan">Mở quán</a>
           <Link href="/quan-tri">CMS công thức</Link>
         </div>
