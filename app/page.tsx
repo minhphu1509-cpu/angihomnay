@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
   featuredRecipeIds,
@@ -55,7 +56,7 @@ function RecipeCard({
   return (
     <article className="recipe-card">
       <button className="recipe-image" onClick={onOpen} aria-label={`Xem ${recipe.name}`}>
-        <img src={recipe.image} alt={recipe.name} />
+        <Image src={recipe.image} alt={recipe.name} fill sizes="(max-width: 620px) 100vw, (max-width: 1180px) 50vw, 25vw" />
         <span className="region-badge">{recipe.region}</span>
       </button>
       <div className="recipe-card-body">
@@ -95,6 +96,17 @@ function RecipeModal({
   onClose: () => void;
 }) {
   const [checked, setChecked] = useState<number[]>([]);
+  const [servings, setServings] = useState(recipe.servings);
+  const scale = servings / recipe.servings;
+
+  const formatAmount = (amount: number | string) => {
+    if (typeof amount === "string") return amount;
+    const scaled = amount * scale;
+    if (scaled < 10) return Number(scaled.toFixed(1)).toLocaleString("vi-VN");
+    return Math.round(scaled).toLocaleString("vi-VN");
+  };
+
+  const ingredientGroups = ["Phần chính", "Gia vị", "Ăn kèm"] as const;
 
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
@@ -119,20 +131,23 @@ function RecipeModal({
       >
         <button className="modal-close" onClick={onClose} aria-label="Đóng công thức">×</button>
         <div className="modal-hero">
-          <img src={recipe.image} alt={recipe.name} />
+          <Image src={recipe.image} alt={recipe.name} fill sizes="(max-width: 980px) 100vw, 980px" priority />
           <div className="modal-hero-overlay">
             <span>{recipe.region} · {recipe.origin}</span>
             <h2 id="recipe-modal-title">{recipe.name}</h2>
             <div className="modal-stats">
-              <span><strong>{recipe.time}</strong> phút</span>
-              <span><strong>{recipe.servings}</strong> người</span>
+              <span><strong>{recipe.time}</strong> phút tổng</span>
+              <span><strong>{recipe.prepTime} + {recipe.cookTime}</strong> sơ chế + nấu</span>
               <span><strong>{recipe.difficulty}</strong> độ khó</span>
             </div>
           </div>
         </div>
         <div className="modal-content">
           <div className="modal-intro">
-            <p>{recipe.description}</p>
+            <div>
+              <span className="variation-label">{recipe.variation}</span>
+              <p>{recipe.description}</p>
+            </div>
             <button className={`save-recipe ${favorite ? "active" : ""}`} onClick={onFavorite}>
               <HeartIcon filled={favorite} /> {favorite ? "Đã lưu món" : "Lưu món này"}
             </button>
@@ -141,18 +156,43 @@ function RecipeModal({
             <aside>
               <p className="section-kicker">Chuẩn bị</p>
               <h3>Nguyên liệu</h3>
-              <ul className="ingredient-list">
-                {recipe.ingredients.map((ingredient) => <li key={ingredient}>{ingredient}</li>)}
-              </ul>
+              <div className="serving-control" aria-label="Điều chỉnh khẩu phần">
+                <span>Khẩu phần</span>
+                <div>
+                  <button onClick={() => setServings((value) => Math.max(1, value - 1))} aria-label="Giảm khẩu phần">−</button>
+                  <strong>{servings} người</strong>
+                  <button onClick={() => setServings((value) => Math.min(12, value + 1))} aria-label="Tăng khẩu phần">+</button>
+                </div>
+              </div>
+              {ingredientGroups.map((group) => {
+                const items = recipe.ingredients.filter((item) => item.group === group);
+                if (!items.length) return null;
+                return (
+                  <div className="ingredient-group" key={group}>
+                    <h4>{group}</h4>
+                    <ul className="ingredient-list">
+                      {items.map((item, index) => (
+                        <li key={`${item.item}-${index}`}>
+                          <span>
+                            <strong>{formatAmount(item.amount)} {item.unit}</strong> {item.item}
+                            {item.optional && <em> tùy chọn</em>}
+                          </span>
+                          {item.prep && <small>{item.prep}</small>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
             </aside>
             <div>
               <p className="section-kicker">Thực hiện</p>
-              <h3>5 bước vào bếp</h3>
+              <h3>{recipe.steps.length} bước vào bếp</h3>
               <ol className="step-list">
-                {recipe.steps.map((step, index) => {
+                {recipe.steps.map((recipeStep, index) => {
                   const isChecked = checked.includes(index);
                   return (
-                    <li key={step} className={isChecked ? "done" : ""}>
+                    <li key={`${recipeStep.title}-${index}`} className={isChecked ? "done" : ""}>
                       <button
                         onClick={() =>
                           setChecked((current) =>
@@ -165,17 +205,64 @@ function RecipeModal({
                       >
                         {isChecked ? "✓" : index + 1}
                       </button>
-                      <p>{step}</p>
+                      <div>
+                        <div className="step-heading">
+                          <strong>{recipeStep.title}</strong>
+                          {(recipeStep.duration || recipeStep.temperature) && (
+                            <span>
+                              {[recipeStep.duration, recipeStep.temperature].filter(Boolean).join(" · ")}
+                            </span>
+                          )}
+                        </div>
+                        <p>{recipeStep.instruction}</p>
+                      </div>
                     </li>
                   );
                 })}
               </ol>
               <div className="chef-note">
-                <strong>Mẹo bếp Việt</strong>
-                <p>Nêm gia vị thành nhiều lần và luôn thử lại trước khi hoàn thiện món.</p>
+                <strong>Mẹo để thành công</strong>
+                <p>{recipe.tips[0]}</p>
               </div>
             </div>
           </div>
+          <div className="recipe-detail-grid">
+            <section>
+              <p className="section-kicker">Dấu hiệu đạt</p>
+              <h4>Món đã chín đúng</h4>
+              <p>{recipe.doneness}</p>
+            </section>
+            <section className="safety-card">
+              <p className="section-kicker">An toàn thực phẩm</p>
+              <h4>Lưu ý quan trọng</h4>
+              <p>{recipe.safety}</p>
+            </section>
+            <section>
+              <p className="section-kicker">Dụng cụ</p>
+              <h4>Chuẩn bị trước</h4>
+              <ul>{recipe.equipment.map((item) => <li key={item}>{item}</li>)}</ul>
+            </section>
+            <section>
+              <p className="section-kicker">Dị ứng</p>
+              <h4>Thành phần cần lưu ý</h4>
+              <div className="allergen-list">
+                {recipe.allergens.length
+                  ? recipe.allergens.map((item) => <span key={item}>{item}</span>)
+                  : <span>Không có chất dị ứng phổ biến được nhận diện</span>}
+              </div>
+            </section>
+            <section>
+              <p className="section-kicker">Thay thế</p>
+              <h4>Linh hoạt nguyên liệu</h4>
+              <ul>{recipe.substitutions.map((item) => <li key={item}>{item}</li>)}</ul>
+            </section>
+            <section>
+              <p className="section-kicker">Bảo quản</p>
+              <h4>Dùng món an toàn</h4>
+              <p>{recipe.storage}</p>
+            </section>
+          </div>
+          <p className="source-note">{recipe.sourceNote}</p>
         </div>
       </section>
     </div>
@@ -186,19 +273,18 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [activeRegion, setActiveRegion] = useState<RegionFilter>("Tất cả");
   const [visibleCount, setVisibleCount] = useState(12);
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<number[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const stored = window.localStorage.getItem("an-gi-hom-nay-favorites");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem("an-gi-hom-nay-favorites");
-      if (stored) setFavorites(JSON.parse(stored));
-    } catch {
-      setFavorites([]);
-    }
-  }, []);
 
   const toggleFavorite = (id: number) => {
     setFavorites((current) => {
@@ -225,10 +311,6 @@ export default function Home() {
     });
   }, [activeRegion, favorites, query, showFavorites]);
 
-  useEffect(() => {
-    setVisibleCount(12);
-  }, [activeRegion, query, showFavorites]);
-
   const explore = () => {
     document.getElementById("kho-mon")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -242,6 +324,7 @@ export default function Home() {
   const chooseRegion = (region: RegionFilter) => {
     setActiveRegion(region);
     setShowFavorites(false);
+    setVisibleCount(12);
     requestAnimationFrame(explore);
   };
 
@@ -266,6 +349,7 @@ export default function Home() {
             className={`favorite-link ${showFavorites ? "active" : ""}`}
             onClick={() => {
               setShowFavorites((current) => !current);
+              setVisibleCount(12);
               requestAnimationFrame(explore);
             }}
           >
@@ -292,7 +376,10 @@ export default function Home() {
             <SearchIcon />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setVisibleCount(12);
+              }}
               onKeyDown={(event) => event.key === "Enter" && explore()}
               placeholder="Tìm món ăn, nguyên liệu, vùng miền..."
               aria-label="Tìm kiếm món ăn"
@@ -316,15 +403,15 @@ export default function Home() {
         <div className="hero-visual" aria-label="Ba món Việt Nam nổi tiếng">
           <div className="pattern-lotus" />
           <button className="food-frame food-frame-main" onClick={() => setSelectedRecipe(recipes[0])}>
-            <img src="/food/pho-bo.webp" alt="Phở bò Hà Nội" />
+            <Image src="/food/pho-bo.webp" alt="Phở bò Hà Nội" fill sizes="(max-width: 900px) 64vw, 32vw" priority />
             <span><small>Tinh hoa Bắc Bộ</small>Phở bò Hà Nội</span>
           </button>
           <button className="food-frame food-frame-top" onClick={() => setSelectedRecipe(recipes[100])}>
-            <img src="/food/bun-bo-hue.webp" alt="Bún bò Huế" />
+            <Image src="/food/bun-bo-hue.webp" alt="Bún bò Huế" fill sizes="(max-width: 900px) 38vw, 22vw" priority />
             <span><small>Đậm đà miền Trung</small>Bún bò Huế</span>
           </button>
           <button className="food-frame food-frame-bottom" onClick={() => setSelectedRecipe(recipes[200])}>
-            <img src="/food/banh-xeo.webp" alt="Bánh xèo miền Tây" />
+            <Image src="/food/banh-xeo.webp" alt="Bánh xèo miền Tây" fill sizes="(max-width: 900px) 42vw, 24vw" priority />
             <span><small>Hào sảng phương Nam</small>Bánh xèo</span>
           </button>
           <span className="stamp">1000<br /><small>món ngon</small></span>
@@ -408,6 +495,7 @@ export default function Home() {
                 onClick={() => {
                   setActiveRegion(region.key);
                   setShowFavorites(false);
+                  setVisibleCount(12);
                 }}
               >
                 {region.key}
@@ -418,7 +506,10 @@ export default function Home() {
             <SearchIcon />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setVisibleCount(12);
+              }}
               placeholder="Tìm trong 1.000 món..."
             />
           </label>
